@@ -65,7 +65,8 @@ export function construireCarte() {
     groupe.updateMatrixWorld(true);
     const boite = new Box3().setFromObject(groupe);
     racine.add(groupe);
-    return { ...def, groupe, balayage, boite, eclatement: 0, remplissage: 1 };
+    // dz : décalage en profondeur en plus de l'éclatement (vue « semi-éclatée » de l'acte II)
+    return { ...def, groupe, balayage, boite, eclatement: 0, remplissage: 1, dz: 0 };
   });
 
   // Recalcule l'étendue du balayage de chaque pièce dans le monde
@@ -91,7 +92,7 @@ export function construireCarte() {
   function placer() {
     for (const p of pieces) {
       const [x, y, z] = p.eclate;
-      p.groupe.position.set(x * p.eclatement, y * p.eclatement, z * p.eclatement);
+      p.groupe.position.set(x * p.eclatement, y * p.eclatement, z * p.eclatement + p.dz);
       p.balayage.uRemplir.value = p.remplissage;
     }
     majBalayage();

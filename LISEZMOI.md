@@ -16,14 +16,16 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 |---|---|
 | 1. Charte (`DESIGN.md`) | Validée |
 | 2. Carte 3D construite par code | Validée |
-| 3. Colonne vertébrale (scène, scroll, son), puis acte I | En validation |
-| 4. Actes II, III et IV | À venir |
+| 3. Colonne vertébrale (scène, scroll, son), puis acte I | Validé |
+| 4. Acte II | En validation |
+| 5. Actes III et IV | À venir |
 
 ## Ce que fait le site aujourd'hui
 
 1. **Démarrage** : des lignes de BIOS s'écrivent ; chaque « OK » attend le vrai chargement de la ressource, le compteur suit les octets reçus. Deux boutons : « Allumer » (lance la musique) et « Sans son ».
 2. **Acte I** : un faisceau rasant révèle la carte par fragments, son nom se décode, puis elle se démonte en vue éclatée filaire, avec les onze pièces annotées.
-3. **Griffure** : trois entailles de lumière ferment l'acte I. L'acte II n'est pas encore construit.
+3. **Griffure** : trois entailles de lumière ferment l'acte I.
+4. **Acte II** : le courant entre par le connecteur 16 broches et coule sur le PCB jusqu'à la puce (« 575 W » s'élargit avec lui) ; le silence (tout s'arrête, la musique baisse 2 secondes) ; le souffle (les trois ventilateurs démarrent l'un après l'autre, l'air traverse la carte) ; la vision thermique (une ligne de balayage convertit l'image en vue en coupe infrarouge, la puce chauffe puis les Core Pipes emportent la chaleur). Une griffure ferme l'acte ; l'acte III n'est pas encore construit.
 
 Pendant l'acte I, le son est d'abord étouffé, comme entendu à travers le boîtier, puis il s'ouvre à mesure qu'on descend.
 
@@ -53,7 +55,8 @@ Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le sit
 | Les lignes du démarrage | `src/recit/demarrage.js` (liste `LIGNES`) |
 | Les noms des pièces de la vue éclatée | `src/carte/carte.js` (liste `PIECES`) |
 | La cue sheet : ordre des beats, durée de scroll, temps musical | `src/recit/cue.js` (liste `BEATS`) |
-| La chorégraphie de l'acte I | `src/recit/acte1.js` (positions en vh de scroll) |
+| La chorégraphie de l'acte I, de l'acte II | `src/recit/acte1.js`, `src/recit/acte2.js` (positions en vh de scroll) |
+| Le courant, le flux d'air, la vision thermique | `src/scene/courant.js`, `src/scene/souffle.js`, `src/scene/thermique.js` |
 | Les mesures de la carte | `src/carte/dimensions.js` |
 | Les matières (métal, plastique, verre fumé) | `src/carte/materiaux.js` |
 | Une pièce de la carte | `src/carte/` : `coque.js`, `ventilateurs.js`, `refroidissement.js`, `electronique.js`, `arriere.js` |

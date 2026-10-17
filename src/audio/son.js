@@ -164,6 +164,11 @@ export function creerSon() {
   const clic = () => impulsion({ duree: 0.025, freqDebut: 3200, freqFin: 2600, q: 3, volume: 0.06 });
   // Souffle court : bruit qui glisse de 700 Hz à 2,4 kHz.
   const souffle = () => impulsion({ duree: 0.28, freqDebut: 700, freqFin: 2400, q: 1.2, volume: 0.04 });
+  // Obturateur d'une caméra thermique : deux claquements secs, 45 ms d'écart.
+  const obturateur = () => {
+    impulsion({ duree: 0.018, freqDebut: 1900, freqFin: 1300, q: 2.5, volume: 0.08 });
+    setTimeout(() => impulsion({ duree: 0.012, freqDebut: 4200, freqFin: 3000, q: 3, volume: 0.05 }), 45);
+  };
 
   return {
     audio,
@@ -177,6 +182,7 @@ export function creerSon() {
     formeOnde,
     clic,
     souffle,
+    obturateur,
     temps: () => audio.currentTime,
     // pour vérifier la chaîne : fréquence de coupure actuelle et gain de scène
     mesures: () => (ctx ? { coupure: Math.round(filtre.frequency.value), gainScene: gainScene.gain.value, contexte: ctx.state, lecture: !audio.paused } : null),

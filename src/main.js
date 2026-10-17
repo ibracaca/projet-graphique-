@@ -5,20 +5,22 @@ import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
 import { creerSon } from './audio/son.js';
 import { chargerTextures } from './carte/materiaux.js';
 import { creerCurseur } from './hud/curseur.js';
 import { creerHUD } from './hud/hud.js';
 import { construireActe1 } from './recit/acte1.js';
+import { construireActe2 } from './recit/acte2.js';
 import { creerAnnotations } from './recit/annotations.js';
-import { decoupage, longueursActes, scrollPourTemps } from './recit/cue.js';
+import { decoupage, scrollPourTemps } from './recit/cue.js';
 import { lancerDemarrage } from './recit/demarrage.js';
 import { chargerEnvironnement } from './scene/environnement.js';
 import { creerPlateau, ETAT } from './scene/plateau.js';
 import { creerRendu } from './scene/rendu.js';
 
-gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, CustomEase);
+gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, CustomEase, SplitText);
 // Les trois courbes signatures (DESIGN.md, 4.2), plus celle du curseur.
 CustomEase.create('masse', '0.33,0,0,1');
 CustomEase.create('traine', '0.19,1,0.22,1');
@@ -62,11 +64,9 @@ const choixSon = lancerDemarrage({ etapes: [gpu, textes, polices, environnement,
 // --- Une fois la carte prête : récit, scroll, interface ---------------------
 const { carte, appliquer } = await plateau;
 const { beats, total, finConstruit } = decoupage();
-const positions = {
-  ombre: beats.find((b) => b.id === 'ombre').debut,
-  eclate: beats.find((b) => b.id === 'eclate').debut,
-  suite: finConstruit,
-};
+// début de chaque beat construit, en vh de piste
+const positions = Object.fromEntries(beats.map((b) => [b.id, b.debut]));
+positions.finActe2 = beats.find((b) => b.id === 'thermique').fin;
 document.getElementById('piste').style.height = `${total + 100}vh`;
 
 const annotations = creerAnnotations({ carte, camera: rendu.camera });
@@ -75,7 +75,11 @@ const curseur = creerCurseur({ son, reduit });
 
 const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
 let declencheur = null;
-construireActe1({ tl, E: ETAT, carte, annotations, positions, son, reduit, sensDuScroll: () => declencheur?.direction ?? 1 });
+const contexte = { tl, E: ETAT, carte, annotations, positions, son, reduit, sensDuScroll: () => declencheur?.direction ?? 1 };
+construireActe1(contexte);
+construireActe2(contexte);
+// La suite n'est pas encore construite.
+tl.set('#t-suite', { visibility: 'visible' }, finConstruit + 10).fromTo('#t-suite', { opacity: 0 }, { opacity: 1, duration: 40, ease: 'traine' }, finConstruit + 10);
 tl.set({}, {}, total); // la durée de la timeline = la longueur de la piste, en vh
 
 const lenis = new Lenis({ lerp: reduit ? 1 : 0.085, wheelMultiplier: 0.9 });
@@ -113,13 +117,32 @@ document.getElementById('btn-son').addEventListener('click', async () => {
   else son.basculerMuet();
   hud.majBoutonSon();
 });
+// Étendue de chaque acte sur la piste (seuls les beats construits comptent).
+const actes = [0, 1, 2, 3].map((i) => {
+  const b = beats.filter((x) => x.acte === i);
+  return b.length ? { debut: b[0].debut, longueur: b.at(-1).fin - b[0].debut } : null;
+});
 hud.auClicActe = (i) => {
-  const debut = [0, positions.suite][i];
-  if (debut !== undefined) lenis.scrollTo(vhEnPx(debut), { duration: 2.4, easing: (t) => 1 - (1 - t) ** 4 });
+  if (actes[i]) lenis.scrollTo(vhEnPx(actes[i].debut), { duration: 2.4, easing: (t) => 1 - (1 - t) ** 4 });
 };
 
+// Le silence (beat 4) : la musique baisse vers 25 % pendant 2 secondes.
+let beatPrecedent = null;
+let minuterieSilence = null;
+function surChangementDeBeat(id) {
+  clearTimeout(minuterieSilence);
+  if (id === 'silence') {
+    son.gainDeScene(0.25, 0.5);
+    minuterieSilence = setTimeout(() => son.gainDeScene(1, 1.5), 2000);
+  } else if (beatPrecedent === 'silence') son.gainDeScene(1, 0.8);
+  beatPrecedent = id;
+}
+
+const regimeValeur = document.getElementById('regime-valeur');
+const regimeLigne = regimeValeur.parentElement;
+let regimeAffiche = -1;
+
 // --- Boucle -------------------------------------------------------------------
-const actes = longueursActes();
 gsap.ticker.lagSmoothing(0);
 gsap.ticker.add((temps, deltaMs) => {
   const dt = Math.min(deltaMs / 1000, 0.1);
@@ -132,14 +155,26 @@ gsap.ticker.add((temps, deltaMs) => {
 
   const niveaux = son.analyser(dt);
   son.coupure(350 * Math.pow(20000 / 350, ETAT.ouverture));
-  appliquer(temps, niveaux);
+  appliquer(temps, niveaux, dt);
   annotations.maj();
 
   const pos = tl.time();
   const beat = beats.find((b) => pos >= b.debut && pos < b.fin);
   hud.changerLabel(beat ? beat.label : '');
-  hud.maj(ETAT, [Math.min(1, pos / actes[0]), 0, 0, 0]);
+  if ((beat?.id ?? null) !== beatPrecedent) surChangementDeBeat(beat?.id ?? null);
+  hud.maj(
+    ETAT,
+    actes.map((a) => (a ? Math.min(1, Math.max(0, (pos - a.debut) / a.longueur)) : 0)),
+  );
   if (pos > 12) hud.masquerIndication();
+
+  // régime des ventilateurs, en % : les chiffres s'épaississent avec la puissance
+  const regime = Math.round(((ETAT.v1 + ETAT.v2 + ETAT.v3) / 3) * 100);
+  if (regime !== regimeAffiche) {
+    regimeAffiche = regime;
+    regimeValeur.textContent = String(regime).padStart(3, '0');
+    regimeLigne.style.setProperty('--wght', String(Math.round(200 + regime * 5)));
+  }
 
   rendu.rendre(temps, dt);
 });

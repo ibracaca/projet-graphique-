@@ -15,6 +15,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { DEGRADE_MSI } from '../couleurs.js';
+import { creerThermique } from './thermique.js';
 
 // ---------------------------------------------------------------------------
 // Une seule scène WebGL pour tout le site. Chaîne d'image :
@@ -29,17 +30,22 @@ const VERTEX_PLEIN_ECRAN = /* glsl */ `
   void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
 
+// La vision thermique (beat 6) remplace l'image au passage d'une ligne de balayage
+// qui descend du haut de l'écran.
 const Composition = {
   uniforms: {
     tDiffuse: { value: null },
     tBloom: { value: null },
+    tThermique: { value: null },
     uBloom: { value: 1 },
     uAberration: { value: 0 },
+    uScan: { value: 0 },
+    uHauteur: { value: 1080 },
   },
   vertexShader: VERTEX_PLEIN_ECRAN,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse, tBloom;
-    uniform float uBloom, uAberration;
+    uniform sampler2D tDiffuse, tBloom, tThermique;
+    uniform float uBloom, uAberration, uScan, uHauteur;
     varying vec2 vUv;
     void main() {
       vec2 d = vUv - 0.5;
@@ -49,8 +55,18 @@ const Composition = {
       c.r = texture2D(tDiffuse, vUv - decal).r;
       c.g = texture2D(tDiffuse, vUv).g;
       c.b = texture2D(tDiffuse, vUv + decal).b;
-      c += texture2D(tBloom, vUv).rgb * uBloom;
-      gl_FragColor = vec4(c, 1.0);
+      vec3 bloom = texture2D(tBloom, vUv).rgb * uBloom;
+      if (uScan > 0.0) {
+        float limite = 1.0 - uScan;
+        float m = step(limite, vUv.y);
+        c = mix(c, texture2D(tThermique, vUv).rgb, m);
+        bloom *= 1.0 - m;
+        // la ligne de balayage : un filet net, avec une traîne vers le haut
+        float px = (vUv.y - limite) * uHauteur;
+        float actif = step(0.0005, uScan) * step(uScan, 0.9995);
+        c += vec3(1.0) * (exp(-px * px / 1.5) * 2.0 + exp(-max(px, 0.0) / 40.0) * 0.06) * actif;
+      }
+      gl_FragColor = vec4(c + bloom, 1.0);
     }
   `,
 };
@@ -175,20 +191,51 @@ export function creerRendu(canvas) {
   const composerBloom = new EffectComposer(renderer);
   composerBloom.renderToScreen = false;
   composerBloom.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new Vector2(256, 256), 1.2, 0.55, 0);
+  // rayon court : une lueur de tube, pas un brouillard coloré
+  // Rayon 0 : les poids ci-dessous s'appliquent tels quels (avec un rayon non nul,
+  // Three.js redonne du poids aux niveaux larges et voile tout l'écran).
+  const bloom = new UnrealBloomPass(new Vector2(256, 256), 1.1, 0, 0);
+  // poids des cinq niveaux de flou : surtout les plus fins (lueur de tube),
+  // les plus larges ne laissent qu'un halo court
+  bloom.compositeMaterial.uniforms.bloomFactors.value = [1.0, 0.65, 0.28, 0.08, 0.02];
   composerBloom.addPass(bloom);
   passeComposition.uniforms.tBloom.value = composerBloom.renderTarget2.texture;
 
+  // Passe thermique (beat 6).
+  const thermique = creerThermique();
+  passeComposition.uniforms.tThermique.value = thermique.cible.texture;
+  let horsThermique = [];
+
   // Matériaux masqués pendant la passe des néons (ils n'écrivent que leur profondeur).
+  // Objets cachés pendant la passe thermique : filaires, particules, lignes,
+  // et ce qui est marqué horsThermique (coque, ventilateurs).
   let masques = [];
   function recenserMateriaux() {
     const set = new Set();
+    horsThermique = [];
     scene.traverse((o) => {
-      if (!(o.isMesh || o.isLineSegments || o.isPoints) || o.userData.neon) return;
+      if (o.isLine || o.isPoints || o.userData.horsThermique || o.userData.neon) horsThermique.push(o);
+      if (!(o.isMesh || o.isLine || o.isPoints) || o.userData.neon) return;
       const ms = Array.isArray(o.material) ? o.material : [o.material];
       ms.forEach((m) => set.add(m));
     });
     masques = [...set];
+  }
+
+  function rendreThermique(temps) {
+    const visibles = horsThermique.map((o) => o.visible);
+    horsThermique.forEach((o) => (o.visible = false));
+    const ombres = renderer.shadowMap.enabled;
+    renderer.shadowMap.enabled = false;
+    thermique.materiau.uniforms.uTemps.value = Math.floor(temps * 24) / 24;
+    scene.overrideMaterial = thermique.materiau;
+    renderer.setRenderTarget(thermique.cible);
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    scene.overrideMaterial = null;
+    renderer.shadowMap.enabled = ombres;
+    horsThermique.forEach((o, i) => (o.visible = visibles[i]));
   }
 
   let niveau = 0;
@@ -217,6 +264,8 @@ export function creerRendu(canvas) {
     composerBloom.setSize(l, h);
     passeComposition.uniforms.tBloom.value = composerBloom.renderTarget2.texture;
     passeFinition.uniforms.uRatio.value = l / h;
+    thermique.cible.setSize(Math.round(l * dpr()), Math.round(h * dpr()));
+    passeComposition.uniforms.uHauteur.value = h * dpr();
     camera.aspect = l / h;
     camera.updateProjectionMatrix();
   }
@@ -259,6 +308,7 @@ export function creerRendu(canvas) {
     composerBloom.render();
     for (const m of masques) m.colorWrite = true;
     renderer.shadowMap.needsUpdate = false;
+    if (passeComposition.uniforms.uScan.value > 0) rendreThermique(temps);
     composer.render();
   }
 
@@ -271,6 +321,7 @@ export function creerRendu(canvas) {
     redimensionner,
     qualite,
     uniforms: { ...passeComposition.uniforms, ...passeFinition.uniforms },
+    thermique: thermique.materiau.uniforms,
     bloom,
   };
 }

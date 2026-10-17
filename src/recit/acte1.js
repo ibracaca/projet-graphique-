@@ -13,7 +13,8 @@ const ORDRE_FILAIRE = ['coque', 'ventilateurs', 'radiateur', 'corePipes', 'plaqu
 const ORDRE_ANNOTATIONS = ['coque', 'ventilateurs', 'radiateur', 'corePipes', 'plaqueBase', 'pcb', 'gpu', 'memoire', 'connecteur', 'backplate', 'equerre'];
 
 export function construireActe1({ tl, E, carte, annotations, positions, son, reduit, sensDuScroll }) {
-  const { ombre, eclate, suite } = positions;
+  const { ombre, eclate } = positions;
+  const suite = positions.courant;
   const pieces = (ordre) => ordre.map((id) => carte.piece(id));
 
   // Le son s'ouvre pendant tout l'acte I : 350 Hz -> 20 kHz (courbe exponentielle,
@@ -86,5 +87,4 @@ export function construireActe1({ tl, E, carte, annotations, positions, son, red
       .to(E, { noir: 1, duration: 26, ease: 'coupe' }, e + 508)
       .call(() => sensDuScroll() > 0 && son.souffle(), null, e + 500);
   }
-  tl.set('#t-suite', { visibility: 'visible' }, suite + 10).fromTo('#t-suite', { opacity: 0 }, { opacity: 1, duration: 40, ease: 'traine' }, suite + 10);
 }

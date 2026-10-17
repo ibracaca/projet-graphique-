@@ -201,6 +201,8 @@ Durée de scroll en hauteurs d'écran (`vh`). Total : environ 54 écrans, soit 4
 | 13 | Fiche technique | 3:36,1 | 300 | **Par le générique** : les lignes du tableau montent comme un générique de fin de film, chiffres qui roulent. |
 | 14 | Footer | 4:07,9 | 200 | **Par l'extinction** : tout s'éteint pixel par pixel (tramage ordonné) jusqu'au noir OLED total. |
 
+**Ajouts de construction (acte II).** Pendant l'acte II, la carte est en vue « semi-éclatée » : les couches restent séparées en profondeur pour qu'on voie le courant, l'air et la chaleur les traverser, et la vraie reconstruction reste la pièce maîtresse du beat 11. La vision thermique (beat 6) est une **vue en coupe** à hauteur de la puce, regardée d'en haut, comme un plan de coupe d'ingénieur : on y lit la puce, la plaque de base, la rangée des Core Pipes en section carrée et les ailettes.
+
 ### 5.3 Les griffures (transitions entre actes)
 
 Trois entailles lumineuses parallèles, nettes, à l'angle signature, qui traversent l'écran en `coupe`. Elles reprennent les trois barres « /// » de la carte : ce n'est pas un effet ajouté, c'est la carte qui signe la transition. Chaque griffure est un **raccord de forme** : la dernière forme lumineuse de l'acte (le faisceau, le flux, le signal) se tend en lame et ouvre l'acte suivant. Elles sont dessinées en shader plein écran (pas en image), avec une traîne de phosphore.

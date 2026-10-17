@@ -84,8 +84,8 @@ function brancherBalayage(materiau, balayage, trous) {
       )
       .replace(
         '#include <opaque_fragment>',
-        `float lisere = 1.0 - smoothstep(0.0, 2.5, fBal - sBal);
-        outgoingLight += uFront * lisere * 6.0 * step(uRemplir, 0.999);
+        `float lisere = 1.0 - smoothstep(0.0, 0.9, fBal - sBal);
+        outgoingLight += uFront * lisere * 1.4 * step(uRemplir, 0.999);
         #include <opaque_fragment>`,
       );
   };
@@ -195,11 +195,12 @@ export function materiauFilaire(balayage) {
         float s = dot(vMonde, uDir);
         float f = frontBalayage();
         float rempli = smoothstep(f + 1.0, f - 10.0, s);
-        float bord = 1.0 - smoothstep(0.0, 5.0, abs(s - f));
-        bord *= step(0.001, uRemplir) * step(uRemplir, 0.999);
+        float bord = 1.0 - smoothstep(0.0, 2.5, abs(s - f));
+        // pas de front lumineux sur une pièce dont le filaire est masqué
+        bord *= step(0.001, uRemplir) * step(uRemplir, 0.999) * step(0.001, uOpacite);
         // pièce entièrement remplie : plus aucun filaire, même sur ses derniers millimètres
         float a = uOpacite * (1.0 - rempli) * (1.0 - smoothstep(0.985, 1.0, uRemplir));
-        vec3 c = mix(uCouleur, uFront * 3.0, bord);
+        vec3 c = mix(uCouleur, uFront * 1.6, bord);
         float alpha = max(a, bord);
         if (alpha < 0.002) discard;
         gl_FragColor = vec4(c * alpha, 1.0);

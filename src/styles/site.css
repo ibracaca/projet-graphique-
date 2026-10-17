@@ -127,6 +127,76 @@ button, a { cursor: none; font: inherit; }
 
 #t-suite { inset: 0; display: grid; place-items: center; }
 
+/* Acte II ----------------------------------------------------------------- */
+
+.bas-gauche { left: calc(var(--marge) * 2.2); bottom: calc(var(--marge) * 2.4); }
+.haut-gauche { left: calc(var(--marge) * 2.2); top: calc(var(--marge) * 3.2); }
+
+/* Grands chiffres et titres cinétiques : la largeur suit la charge. */
+.display {
+  --wdth: 125;
+  --wght: 300;
+  margin: 0;
+  font-size: var(--fs-display);
+  font-variation-settings: 'wdth' var(--wdth), 'wght' var(--wght);
+  font-weight: var(--wght);
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  color: var(--blanc);
+  white-space: nowrap;
+}
+#titre-silence { font-size: var(--fs-titre); line-height: 1; letter-spacing: -0.01em; }
+
+.texte-beat {
+  max-width: 34ch;
+  margin: 1.1em 0 0;
+  font-size: var(--fs-texte);
+  line-height: 1.45;
+  color: var(--alu);
+}
+.haut-gauche .texte-beat { max-width: 30ch; }
+
+#titre-souffle { display: inline-block; }
+
+#t-regime {
+  right: calc(var(--marge) * 2.2);
+  bottom: calc(var(--marge) * 2.4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.regime-ligne {
+  --wght: 200;
+  display: flex;
+  align-items: baseline;
+  gap: 0.15em;
+  font-family: var(--mono);
+  font-size: var(--fs-titre);
+  font-variation-settings: 'wdth' 100, 'wght' var(--wght);
+  font-weight: var(--wght);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--blanc);
+}
+.regime-unite { font-size: 0.45em; color: var(--acier); }
+
+#echelle-thermique {
+  right: calc(var(--marge) * 2.2);
+  bottom: calc(var(--marge) * 2.6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+/* La seule barre en dégradé du site : c'est un instrument de mesure, pas un décor. */
+.echelle-barre {
+  display: block;
+  width: calc(18 * var(--u));
+  height: 6px;
+  background: linear-gradient(in oklch to right, oklch(0 0 0), var(--msi-bleu), var(--msi-indigo), var(--msi-violet), var(--msi-rose), oklch(0.95 0.04 330));
+  transform-origin: left center;
+}
+
 /* --- HUD ------------------------------------------------------------------ */
 
 .hud-texte {

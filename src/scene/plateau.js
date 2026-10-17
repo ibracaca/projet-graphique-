@@ -13,6 +13,8 @@ import {
 } from 'three';
 import { construireCarte } from '../carte/carte.js';
 import { COULEURS } from '../couleurs.js';
+import { creerCourant } from './courant.js';
+import { creerSouffle } from './souffle.js';
 
 // ---------------------------------------------------------------------------
 // Le plateau : la carte, ses lumières, la poussière. Tout ce qui bouge est piloté
@@ -40,6 +42,18 @@ export const ETAT = {
   ouverture: 0,
   // repère de cadrage : 0 = réticules aux coins, 1 = resserrés sur la carte
   miseAuPoint: 0,
+  // acte II
+  courant: 0, // front du courant dans le PCB (0 à 1)
+  courantLumiere: 0, // éclat des pistes et lumière jetée par le courant
+  flux: 1, // vitesse des particules du courant (0 : tout s'immobilise)
+  pointLumiere: 0, // lumière d'appoint rasante pour le PCB
+  souffle: 0, // visibilité du flux d'air
+  v1: 0, // régime de chaque ventilateur (0 à 1)
+  v2: 0,
+  v3: 0,
+  scan: 0, // vision thermique : part de l'écran balayée (0 à 1)
+  chauffe: 0,
+  evacuation: 0,
 };
 
 const NB_POUSSIERE = 2400;
@@ -161,6 +175,17 @@ export function creerPlateau(rendu) {
   });
   // Néons éteints au départ.
   for (const p of carte.pieces) p.balayage.uAllumage.value = 0;
+  // La caméra thermique ne voit pas la coque ni les ventilateurs : on regarde dedans.
+  carte.piece('coque').groupe.userData.horsThermique = true;
+  carte.piece('ventilateurs').groupe.userData.horsThermique = true;
+
+  const courant = creerCourant(carte.piece('pcb').groupe, rendu.qualite.reglages, rendu.renderer);
+  const souffle = creerSouffle(scene, carte);
+
+  // Lumière rasante d'appoint sur le PCB pendant le beat 3 (vient du bord haut).
+  const appoint = new DirectionalLight(0xffffff, 0);
+  appoint.position.set(-60, 400, 60);
+  scene.add(appoint);
 
   // Faisceau rasant.
   const faisceau = new SpotLight(0xffffff, 0, 1400, MathUtils.degToRad(9), 0.75, 0);
@@ -184,8 +209,10 @@ export function creerPlateau(rendu) {
   const dir = new Vector3();
   const FOV_REF = 16 / 9;
 
+  const vitesses = [0, 0, 0];
+
   // Recopie ETAT dans la scène. son : niveaux lissés (basses, aigus, temps).
-  function appliquer(temps, son) {
+  function appliquer(temps, son, dt = 1 / 60) {
     const E = ETAT;
 
     // Caméra : le champ horizontal ne descend jamais sous celui d'un écran 16:9
@@ -238,6 +265,22 @@ export function creerPlateau(rendu) {
     for (const p of carte.pieces) p.balayage.uAllumage.value = E.neon * pulse;
 
     carte.placer();
+
+    // Acte II : courant, ventilateurs, flux d'air, thermique.
+    appoint.intensity = E.pointLumiere;
+    courant.maj(dt, E, son);
+    vitesses[0] = E.v1;
+    vitesses[1] = E.v2;
+    vitesses[2] = E.v3;
+    carte.rotors.forEach((r, i) => {
+      // jusqu'à 11 rad/s à l'écran ; les basses donnent un léger à-coup de couple
+      r.rotation.z += dt * vitesses[i] * (11 + son.basses * 1.5);
+    });
+    souffle.maj(dt, E, vitesses);
+    const th = rendu.thermique;
+    th.uChauffe.value = E.chauffe;
+    th.uEvacuation.value = E.evacuation;
+    rendu.uniforms.uScan.value = E.scan;
 
     const u = rendu.uniforms;
     u.uGrain.value = E.grain;
