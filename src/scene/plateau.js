@@ -7,10 +7,12 @@ import {
   MathUtils,
   Mesh,
   Points,
+  RectAreaLight,
   ShaderMaterial,
   SpotLight,
   Vector3,
 } from 'three';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { construireCarte } from '../carte/carte.js';
 import { COULEURS } from '../couleurs.js';
 import { creerAretes } from './aretes.js';
@@ -193,6 +195,9 @@ function creerCone() {
   return cone;
 }
 
+// intensité des boîtes à lumière pour E.atelier = 1 (réglée à l'œil sur les beats 11 et 13)
+const BOITES = 6;
+
 export function creerPlateau(rendu, modele) {
   const { scene, camera } = rendu;
   const carte = construireCarte(modele);
@@ -240,6 +245,25 @@ export function creerPlateau(rendu, modele) {
   atelier.position.set(-300, 500, 600);
   scene.add(atelier);
 
+  // Boîtes à lumière du studio : de longues sources rectangulaires qui dessinent des
+  // reflets nets sur la coque, les verres, les caloducs et le backplate (le « look »
+  // d'un film produit). Elles suivent la lumière d'atelier déjà chorégraphiée :
+  // éteintes tant qu'elle l'est (début de l'acte I, plongée, ville).
+  RectAreaLightUniformsLib.init();
+  const boites = [
+    // [x, y, z, largeur, hauteur, intensité relative] : bandeau haut-avant, flanc gauche, contre-jour
+    [60, 170, 430, 700, 60, 1],
+    [-520, 60, 160, 70, 300, 0.55],
+    [260, 140, -380, 420, 50, 0.7],
+  ].map(([x, y, z, l, h, k]) => {
+    const b = new RectAreaLight(0xffffff, 0, l, h);
+    b.position.set(x, y, z);
+    b.lookAt(0, 0, 0);
+    b.userData.k = k;
+    scene.add(b);
+    return b;
+  });
+
   const poussiere = creerPoussiere();
   const cone = creerCone();
   scene.add(poussiere, cone);
@@ -248,6 +272,7 @@ export function creerPlateau(rendu, modele) {
   const FOV_REF = 16 / 9;
 
   const vitesses = [0, 0, 0];
+  let ao = 0;
 
   // Recopie ETAT dans la scène. son : niveaux lissés (basses, aigus, temps).
   function appliquer(temps, son, dt = 1 / 60) {
@@ -296,7 +321,21 @@ export function creerPlateau(rendu, modele) {
     poussiere.visible = E.poussiere > 0.001;
 
     scene.environmentIntensity = E.env;
+    // Occlusion ambiante : seulement quand toute la carte est en matière, hors
+    // vision thermique, microscope et ville ; elle arrive et repart en fondu.
+    const enMatiere = carte.pieces.every((p) => p.remplissage > 0.999) && E.ville < 0.5 && E.scan < 0.001 && E.micro < 0.01;
+    ao += ((enMatiere ? 1 : 0) - ao) * Math.min(1, dt * 5);
+    rendu.reglerAO(ao);
+    // Profondeur de champ discrète, en même temps que l'occlusion : mise au point sur
+    // le point que regarde la caméra, le reste de la carte s'adoucit un peu.
+    const focale = Math.hypot(E.cam.x - E.cam.cx, E.cam.y - E.cam.cy, E.cam.z - E.cam.cz);
+    rendu.reglerFlou(ao, focale);
+
     atelier.intensity = E.atelier;
+    for (const b of boites) {
+      b.intensity = E.atelier * b.userData.k * BOITES;
+      b.visible = b.intensity > 0.001;
+    }
 
     // Néons de la carte : allumage, et une respiration sur les basses.
     const pulse = 1 + son.basses * 0.25;

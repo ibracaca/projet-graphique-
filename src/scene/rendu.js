@@ -1,5 +1,6 @@
 import {
   Color,
+  DepthTexture,
   HalfFloatType,
   NeutralToneMapping,
   PerspectiveCamera,
@@ -10,6 +11,7 @@ import {
   PCFSoftShadowMap,
 } from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -46,13 +48,29 @@ const Composition = {
     uDlss: { value: 0 }, // part des tuiles déjà passées par DLSS
     uTuile: { value: 56 },
     uTempsC: { value: 0 },
+    // profondeur de champ : profondeur de la scène, distance de mise au point (mm),
+    // rayon de flou maximal (pixels), plans de la caméra
+    tProfondeur: { value: null },
+    uFocale: { value: 300 },
+    uFlou: { value: 0 },
+    uNear: { value: 5 },
+    uFar: { value: 6000 },
   },
   vertexShader: VERTEX_PLEIN_ECRAN,
   fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse, tBloom, tThermique;
+    uniform sampler2D tDiffuse, tBloom, tThermique, tProfondeur;
     uniform float uBloom, uAberration, uScan, uHauteur, uLargeur, uBrut, uDlss, uTuile, uTempsC;
+    uniform float uFocale, uFlou, uNear, uFar;
     varying vec2 vUv;
     float hashT(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+    float lineaire(float d) { float z = d * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }
+    // cercle de confusion, de 0 (net) à 1 (flou maximal) : il croît avec l'écart
+    // relatif à la distance de mise au point, comme pour un objectif ouvert ; le fond reste net
+    float confusion(float d) {
+      if (d > 0.9999) return 0.0;
+      float z = lineaire(d);
+      return clamp(abs(z - uFocale) / z * 5.0, 0.0, 1.0);
+    }
     void main() {
       vec2 res = vec2(uLargeur, uHauteur);
       vec2 uvC = vUv;
@@ -75,6 +93,23 @@ const Composition = {
       c.r = texture2D(tDiffuse, uvC - decal).r;
       c.g = texture2D(tDiffuse, uvC).g;
       c.b = texture2D(tDiffuse, uvC + decal).b;
+      if (uFlou > 0.0) {
+        // profondeur de champ : disque de 16 échantillons en spirale ; un échantillon
+        // net ne bave pas sur son voisin flou (poids = son propre flou)
+        float r = confusion(texture2D(tProfondeur, uvC).x) * uFlou;
+        if (r > 0.5) {
+          vec3 s = c;
+          float w = 1.0;
+          for (int i = 0; i < 16; i++) {
+            float a = float(i) * 2.39996;
+            vec2 o = vec2(cos(a), sin(a)) * sqrt(float(i) + 0.5) * 0.25 * r / res;
+            float wi = confusion(texture2D(tProfondeur, uvC + o).x);
+            s += texture2D(tDiffuse, uvC + o).rgb * wi;
+            w += wi;
+          }
+          c = s / w;
+        }
+      }
       vec3 bloom = texture2D(tBloom, vUv).rgb * uBloom;
       if (brut > 0.0) {
         // bruit de Monte-Carlo : des pixels trop clairs ou trop sombres, qui changent
@@ -192,13 +227,15 @@ const Finition = {
 
 // Niveaux de qualité : on descend quand les images par seconde chutent.
 // msaa : échantillons d'antialiasing de la composition principale (les ailettes
-// et les bords de pales ne scintillent plus).
+// et les bords de pales ne scintillent plus) ; ao : occlusion ambiante en temps réel.
+// En descendant, on coupe d'abord l'occlusion, puis on réduit le MSAA, puis la résolution.
 const NIVEAUX = [
-  { dpr: 1.5, bloom: 0.5, ombres: 2048, poussiere: 1, msaa: 4 },
-  { dpr: 1.25, bloom: 0.5, ombres: 2048, poussiere: 0.8, msaa: 4 },
-  { dpr: 1, bloom: 0.4, ombres: 1024, poussiere: 0.6, msaa: 2 },
-  { dpr: 0.85, bloom: 0.33, ombres: 1024, poussiere: 0.35, msaa: 2 },
-  { dpr: 0.7, bloom: 0.25, ombres: 512, poussiere: 0.2, msaa: 0 },
+  { dpr: 1.5, bloom: 0.5, ombres: 2048, poussiere: 1, msaa: 4, ao: true },
+  { dpr: 1.5, bloom: 0.5, ombres: 2048, poussiere: 0.8, msaa: 4, ao: false },
+  { dpr: 1.25, bloom: 0.5, ombres: 2048, poussiere: 0.8, msaa: 2, ao: false },
+  { dpr: 1, bloom: 0.4, ombres: 1024, poussiere: 0.6, msaa: 2, ao: false },
+  { dpr: 0.85, bloom: 0.33, ombres: 1024, poussiere: 0.35, msaa: 2, ao: false },
+  { dpr: 0.7, bloom: 0.25, ombres: 512, poussiere: 0.2, msaa: 0, ao: false },
 ];
 
 export function creerRendu(canvas) {
@@ -219,7 +256,26 @@ export function creerRendu(canvas) {
   const composer = new EffectComposer(renderer);
   composer.renderTarget1.texture.type = HalfFloatType;
   composer.renderTarget2.texture.type = HalfFloatType;
+  // profondeur conservée pour la profondeur de champ (lue par la composition)
+  composer.renderTarget1.depthTexture = new DepthTexture();
+  composer.renderTarget2.depthTexture = new DepthTexture();
   composer.addPass(new RenderPass(scene, camera));
+  // Occlusion ambiante : assombrit les creux de quelques millimètres (entre les
+  // pales, au fond des ailettes, sous les caloducs). Rayon en mm. Elle n'agit que
+  // quand la carte est entière en matière (sinon elle assombrirait le filaire).
+  const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight, {
+    radius: 9,
+    distanceExponent: 1.6,
+    thickness: 4,
+    scale: 1.1,
+    samples: 12,
+    distanceFallOff: 1,
+    screenSpaceRadius: false,
+  });
+  gtao.output = GTAOPass.OUTPUT.Default;
+  gtao.blendIntensity = 0;
+  gtao.enabled = false;
+  composer.addPass(gtao);
   const passeComposition = new ShaderPass(Composition);
   composer.addPass(passeComposition);
   composer.addPass(new OutputPass());
@@ -281,10 +337,19 @@ export function creerRendu(canvas) {
   }
 
   let niveau = 0;
+  let niveauFixe = null; // pour les captures de vérification : niveau imposé
   const qualite = {
     niveau: () => niveau,
     reglages: () => NIVEAUX[niveau],
     auChangement: null,
+    forcer(n) {
+      niveauFixe = n;
+      if (n != null) {
+        niveau = n;
+        redimensionner();
+        qualite.auChangement?.(NIVEAUX[niveau]);
+      }
+    },
   };
 
   // devicePixelRatio plafonné (2 sur les petits écrans, 1,5 au-delà), puis réduit
@@ -337,6 +402,8 @@ export function creerRendu(canvas) {
     const ips = images / cumul;
     cumul = 0;
     images = 0;
+    qualite.ips = ips;
+    if (niveauFixe != null) return;
     if (ips < 50 && niveau < NIVEAUX.length - 1) {
       niveau++;
       calme = 0;
@@ -368,7 +435,24 @@ export function creerRendu(canvas) {
     horsBloom.forEach((o, i) => (o.visible = vis[i]));
     renderer.shadowMap.needsUpdate = false;
     if (passeComposition.uniforms.uScan.value > 0) rendreThermique(temps);
+    // la passe de rendu écrit dans le tampon de lecture courant : c'est sa profondeur
+    passeComposition.uniforms.tProfondeur.value = composer.readBuffer.depthTexture;
     composer.render();
+  }
+
+  // intensite : 0 (coupée) à 1, décidée par le récit (plateau.js) à chaque image
+  // force : 0 à 1 ; focale : distance de mise au point en mm
+  function reglerFlou(force, focale) {
+    const u = passeComposition.uniforms;
+    u.uFlou.value = force * 4 * (innerHeight / 1080) * dpr() * (NIVEAUX[niveau].ao ? 1 : 0);
+    u.uFocale.value = focale;
+    u.uNear.value = camera.near;
+    u.uFar.value = camera.far;
+  }
+
+  function reglerAO(intensite) {
+    gtao.blendIntensity = intensite;
+    gtao.enabled = intensite > 0.01 && NIVEAUX[niveau].ao;
   }
 
   return {
@@ -376,6 +460,8 @@ export function creerRendu(canvas) {
     scene,
     camera,
     rendre,
+    reglerAO,
+    reglerFlou,
     recenserMateriaux,
     redimensionner,
     qualite,
