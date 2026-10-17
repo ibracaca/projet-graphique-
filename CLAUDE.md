@@ -28,6 +28,7 @@ Lis-les avant de concevoir, puis reviens-y quand une question se pose. Ils vienn
 | `docs/05-hud-techno-et-data.md` | Pour les annotations, labels, compteurs, cadrans. |
 | `docs/06-musique-genesis.md` | Analyse du morceau, cue sheet, liaison son et image. Données dans `docs/genesis-energie.csv`. |
 | `docs/07-textes-des-beats.md` | Les textes validés de chaque beat, avec l'état de vérification de chaque chiffre. |
+| `REFONTE-3D.md`, `docs/08-refonte-carte.md`, `docs/09-refonte-ville.md` | La refonte des modèles 3D (carte et ville) vers un rendu proche de la vidéo : brief, état actuel, cibles, contrats à respecter. |
 
 ## Skills
 
