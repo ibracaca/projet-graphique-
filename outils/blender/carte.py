@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import commun  # noqa: E402
 import arriere  # noqa: E402
 import coque  # noqa: E402
+import refroidissement  # noqa: E402
 import ventilateurs  # noqa: E402
 
 debut = time.time()
@@ -19,5 +20,6 @@ commun.vider()
 ventilateurs.construire()
 coque.construire()
 arriere.construire()
+refroidissement.construire()
 commun.exporter('carte.glb')
 print(f'carte.glb construit en {time.time() - debut:.1f} s')

@@ -361,5 +361,14 @@
       "hauteur": 6.2,
       "hdmi": true
     }
-  ]
+  ],
+  "CORE_PIPES": {
+    "nombre": 9,
+    "section": 7,
+    "pas": 7.4,
+    "y": [
+      -34,
+      38
+    ]
+  }
 }

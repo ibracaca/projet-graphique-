@@ -1,3 +1,4 @@
+import { InstancedMesh, Matrix4 } from 'three';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -65,6 +66,22 @@ export function adapterPiece(noeud, ctx) {
     o.material.dispose();
     o.material = ctx.m(nom, { ao: !!g.attributes.aoSommet });
   });
+  // Pièces répétées (ailettes) : une géométrie modèle et la liste des positions
+  // en x (propriété « instances » posée dans Blender) : un seul appel de dessin.
+  const aInstancier = [];
+  noeud.traverse((o) => o.isMesh && Array.isArray(o.userData.instances) && aInstancier.push(o));
+  const m = new Matrix4();
+  for (const o of aInstancier) {
+    const xs = o.userData.instances;
+    const inst = new InstancedMesh(o.geometry, o.material, xs.length);
+    xs.forEach((x, i) => inst.setMatrixAt(i, m.makeTranslation(o.position.x + x, o.position.y, o.position.z)));
+    inst.name = o.name;
+    inst.computeBoundingBox();
+    inst.computeBoundingSphere();
+    o.parent.add(inst);
+    o.removeFromParent();
+  }
+
   // rotors des ventilateurs : nœuds rotor_0, rotor_1...
   const rotors = [];
   for (let i = 0; noeud.getObjectByName(`rotor_${i}`); i++) rotors.push(noeud.getObjectByName(`rotor_${i}`));

@@ -128,6 +128,8 @@ const RECETTES = {
   // pièces enfouies dans la coque : moins de reflets (occlusion approchée)
   alu: { color: srgb('#9a9ca0'), metalness: 1, roughness: 0.45, envMapIntensity: 0.45 },
   nickel: { color: srgb('#d5d2cc'), metalness: 1, roughness: 0.22, envMapIntensity: 0.8 },
+  // ailettes : tôle d'alu de 0,3 mm dessinée en simple face, vue des deux côtés
+  aluAilettes: { color: srgb('#a3a5a9'), metalness: 1, roughness: 0.38, envMapIntensity: 0.5, side: DoubleSide },
   pcb: { color: srgb('#0f1011'), metalness: 0, roughness: 0.72 },
   or: { color: srgb('#e2be66'), metalness: 1, roughness: 0.42 },
   composant: { color: srgb('#1b1c1e'), metalness: 0.1, roughness: 0.6 },

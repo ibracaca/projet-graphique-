@@ -224,8 +224,10 @@ function appliquerVue() {
     cameraPersp.fov = vue.libre.fov;
     cameraPersp.aspect = w / h;
     cameraPersp.up.set(0, 1, 0);
-    cameraPersp.position.set(...vue.libre.pos);
-    controles.target.set(...vue.libre.cible);
+    // ?pos=x,y,z&cible=x,y,z : cadrage libre pour les gros plans
+    const lire = (cle, defaut) => (params.get(cle) ? params.get(cle).split(',').map(Number) : defaut);
+    cameraPersp.position.set(...lire('pos', vue.libre.pos));
+    controles.target.set(...lire('cible', vue.libre.cible));
     cameraPersp.updateProjectionMatrix();
     controles.update();
   } else if (vue.ortho) {
