@@ -99,6 +99,8 @@ const VUES = {
   },
   // Vue libre, sans photo : pour la vue éclatée et le balayage filaire / matière.
   libre: { nom: 'Libre', libre: { pos: [420, 260, 620], cible: [0, 0, 0], fov: 32 } },
+  // Vue libre en arrière-gauche, pour l'équerre et le backplate.
+  libreArriere: { nom: 'Libre dos', libre: { pos: [-520, 160, -420], cible: [-60, 0, -10], fov: 32 } },
 };
 const calages = {};
 
@@ -203,8 +205,10 @@ function appliquerVue() {
   const vue = VUES[etat.vue];
   document.getElementById('volets').classList.toggle('libre', !!vue.libre && !vue.photo);
   // vues de détail : une seule pièce, voire un seul de ses éléments
+  // (?isoler=<id> isole n'importe quelle pièce, dans n'importe quelle vue)
+  const isolee = params.get('isoler') ?? vue.isoler;
   for (const p of carte.pieces) {
-    p.groupe.visible = !vue.isoler || p.id === vue.isoler;
+    p.groupe.visible = !isolee || p.id === isolee;
     for (const enfant of p.groupe.children) {
       if (enfant.userData.aretes) continue; // arêtes du beat 11 : jamais dans l'atelier
       enfant.visible = !vue.seul || p.id !== vue.isoler || enfant.name === vue.seul;

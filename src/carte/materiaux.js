@@ -134,8 +134,12 @@ const RECETTES = {
   die: { color: srgb('#2b2e34'), metalness: 0.6, roughness: 0.1 },
   substrat: { color: srgb('#23272a'), metalness: 0.1, roughness: 0.55 },
   backplateLisse: { color: srgb('#18191b'), metalness: 0.6, roughness: 0.5 },
-  backplateBrosse: { color: srgb('#a4a6ab'), metalness: 1, roughness: 0.34, anisotropy: 0.9 },
-  equerre: { color: srgb('#b9babc'), metalness: 1, roughness: 0.35 },
+  // la carte de rugosité (moyenne 0,47) multiplie cette valeur : 0,85 donne un brossé à 0,4 environ
+  backplateBrosse: { color: srgb('#4a4c51'), metalness: 1, roughness: 0.85, anisotropy: 0.85 },
+  // acier zingué satiné : gris moyen, pas un miroir (produit-5)
+  equerre: { color: srgb('#7f8186'), metalness: 1, roughness: 0.5 },
+  portMetal: { color: srgb('#a9abaf'), metalness: 1, roughness: 0.3 },
+  visSombre: { color: srgb('#4a4b50'), metalness: 1, roughness: 0.28 },
   connecteur: { color: srgb('#121212'), metalness: 0, roughness: 0.5 },
 };
 

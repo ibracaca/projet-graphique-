@@ -5,7 +5,8 @@
 import { writeFileSync } from 'node:fs';
 import * as D from '../../src/carte/dimensions.js';
 import { BARRES, FACADE, X_EMBOUT } from '../../src/carte/coque.js';
+import { FENETRE, PORTS } from '../../src/carte/arriere.js';
 
 const sortie = new URL('./dimensions.json', import.meta.url);
-writeFileSync(sortie, JSON.stringify({ ...D, FACADE, BARRES, X_EMBOUT }, null, 2));
+writeFileSync(sortie, JSON.stringify({ ...D, FACADE, BARRES, X_EMBOUT, FENETRE, PORTS }, null, 2));
 console.log('dimensions.json écrit');

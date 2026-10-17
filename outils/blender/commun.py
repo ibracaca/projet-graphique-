@@ -124,18 +124,38 @@ def ajouter_lignes(tous_s, tous_a, s, a, ferme=False):
     tous_a.extend((i + base, j + base) for i, j in a)
 
 
-def biseauter(o, largeur, segments=3, angle=40):
-    """Arrondit les arêtes vives (celles qui attrapent un filet de lumière)."""
-    b = o.modifiers.new('biseau', 'BEVEL')
-    b.width = largeur
-    b.segments = segments
-    b.limit_method = 'ANGLE'
-    b.angle_limit = math.radians(angle)
-    b.harden_normals = False
-    b.miter_outer = 'MITER_ARC'
-    w = o.modifiers.new('normales', 'WEIGHTED_NORMAL')
-    w.keep_sharp = True
-    appliquer(o)
+def boite_englobante(o):
+    cs = [v.co for v in o.data.vertices]
+    return [min(c[i] for c in cs) for i in range(3)], [max(c[i] for c in cs) for i in range(3)]
+
+
+def biseauter(o, largeur, segments=3, angle=40, onglet='MITER_ARC'):
+    """Arrondit les arêtes vives (celles qui attrapent un filet de lumière).
+    Contrôle : si le biseau fait sortir des sommets de la boîte de départ (géométrie
+    trop serrée), on le refait avec des onglets francs, puis sans onglet."""
+    avant = o.data.copy()
+    mn0, mx0 = boite_englobante(o)
+    for essai in (onglet, 'MITER_SHARP'):
+        b = o.modifiers.new('biseau', 'BEVEL')
+        b.width = largeur
+        b.segments = segments
+        b.limit_method = 'ANGLE'
+        b.angle_limit = math.radians(angle)
+        b.harden_normals = False
+        b.miter_outer = essai
+        w = o.modifiers.new('normales', 'WEIGHTED_NORMAL')
+        w.keep_sharp = True
+        appliquer(o)
+        mn, mx = boite_englobante(o)
+        if all(mn[i] > mn0[i] - 0.01 and mx[i] < mx0[i] + 0.01 for i in range(3)):
+            bpy.data.meshes.remove(avant)
+            return
+        print(f'biseau suspect sur {o.name} (onglet {essai}) : on recommence')
+        ancien = o.data
+        o.data = avant.copy()
+        bpy.data.meshes.remove(ancien)
+    print(f'biseau abandonné sur {o.name}')
+    bpy.data.meshes.remove(avant)
 
 
 def appliquer(o):
@@ -350,3 +370,30 @@ def decouper(sujet, fenetre):
 def arc_points(cx, cz, r, a0, a1, n):
     """Points (rayon, z) d'un arc de cercle dans le plan d'un profil, angles en degrés."""
     return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)), cz + r * math.sin(math.radians(a0 + (a1 - a0) * i / n))) for i in range(n + 1)]
+
+
+def uv_plan(o, echelle=1 / 120, angle=0.0, plan='XY', etirement=1.0):
+    """UV par projection plane (pour les textures qui se répètent : alu brossé...).
+    `angle` (degrés) tourne la direction u, `plan` choisit les deux axes projetés,
+    `etirement` > 1 allonge la texture le long de u (un bruit devient un brossage)."""
+    me = o.data
+    if not me.uv_layers:
+        me.uv_layers.new(name='UVMap')
+    uv = me.uv_layers.active.data
+    a = math.radians(angle)
+    c, s = math.cos(a), math.sin(a)
+    i0, i1 = {'XY': (0, 1), 'ZY': (2, 1), 'XZ': (0, 2)}[plan]
+    for boucle in me.loops:
+        p = me.vertices[boucle.vertex_index].co
+        x, y = p[i0], p[i1]
+        uv[boucle.index].uv = ((x * c + y * s) * echelle / etirement, (-x * s + y * c) * echelle)
+
+
+def souder(o, dist=1e-4):
+    """Fusionne les sommets confondus (axe d'une révolution, coutures)."""
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=dist)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(o.data)
+    bm.free()
