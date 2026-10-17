@@ -199,7 +199,9 @@ export function creerPlateau(rendu, modele) {
   scene.add(carte.racine);
   carte.racine.traverse((o) => {
     if (o.isMesh && !o.userData.neon) {
-      o.castShadow = true;
+      // les ailettes (des milliers de triangles, enfermées dans la coque) reçoivent
+      // les ombres mais n'en projettent pas : la passe d'ombres reste légère
+      o.castShadow = !o.name.startsWith('ailettes');
       o.receiveShadow = true;
     }
   });

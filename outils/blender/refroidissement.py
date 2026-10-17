@@ -23,8 +23,8 @@ CP = DIM['CORE_PIPES']
 # Ailettes : une plaque fine (dessinée en simple face, matière double face),
 # bord avant ondulé (Wave Curved 4.0) et encoché en V (Air Antegrade Fin 2.0).
 def ailette(nom, y0, y1, z0, z1, mat):
-    ny = max(2, int((y1 - y0) / 1.1))
-    rangs = [z0, z1 - 7, z1 - 4.5, z1 - 2.5, z1 - 1.2, None]  # None : le bord avant
+    ny = max(2, int((y1 - y0) / 1.45))
+    rangs = [z0, z1 - 7, z1 - 3.6, z1 - 1.4, None]  # None : le bord avant
     sommets, faces = [], []
     for j in range(ny + 1):
         y = y0 + (y1 - y0) * j / ny
@@ -130,7 +130,7 @@ def reechantillonner(pts, pas):
     return sortie
 
 
-def section(e, ax, az, m=20):
+def section(e, ax, az, m=16):
     """Superellipse : e = 2/n (0,15 : presque carré, 1 : cercle)."""
     pts = []
     for k in range(m):
@@ -144,7 +144,7 @@ def caloduc(x, y_autre, y_depart, sens, z_niveau, y_niveau, x_fin):
     zc = (Z['plaqueBase'] + Z['corePipes']) / 2
     cles = [(x, y_autre, zc), (x, y_depart - sens * 2, zc), (x, y_depart + sens * 3, zc + 2),
             (x, y_niveau - sens * 2, z_niveau), (x + (10 if sens > 0 else -10), y_niveau, z_niveau), (x_fin, y_niveau, z_niveau)]
-    chemin = reechantillonner(catmull_rom(cles, 30), 1.2)
+    chemin = reechantillonner(catmull_rom(cles, 30), 1.9)
     # repères transportés le long du chemin (pas de vrille) : N part vers +z
     reperes = []
     T = (chemin[1] - chemin[0]).normalized()
@@ -162,7 +162,7 @@ def caloduc(x, y_autre, y_depart, sens, z_niveau, y_niveau, x_fin):
             s_sortie = s_total
         reperes.append((p, T.copy(), N.copy(), T.cross(N).normalized(), s_total))
     sommets, faces = [], []
-    m = 20
+    m = 16
     for p, T, N, B, s in reperes:
         t = 0.0 if s_sortie is None else max(0.0, min(1.0, (s - s_sortie) / 12.0))
         t = t * t * (3 - 2 * t)
