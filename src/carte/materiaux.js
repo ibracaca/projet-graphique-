@@ -133,8 +133,16 @@ const RECETTES = {
   pcb: { color: srgb('#0f1011'), metalness: 0, roughness: 0.72 },
   or: { color: srgb('#e2be66'), metalness: 1, roughness: 0.42 },
   composant: { color: srgb('#1b1c1e'), metalness: 0.1, roughness: 0.6 },
+  // selfs d'alimentation : ferrite gris anthracite, mat
+  self: { color: srgb('#2a2b2e'), metalness: 0.3, roughness: 0.55 },
+  // petits composants CMS : céramique beige, extrémités étamées
+  cms: { color: srgb('#8a7a66'), metalness: 0.2, roughness: 0.5 },
+  condensateur: { color: srgb('#b5b7bb'), metalness: 1, roughness: 0.32 },
+  gddr: { color: srgb('#0e0f10'), metalness: 0.05, roughness: 0.6 },
+  cadreGPU: { color: srgb('#9a9ca1'), metalness: 1, roughness: 0.35 },
   die: { color: srgb('#2b2e34'), metalness: 0.6, roughness: 0.1 },
-  substrat: { color: srgb('#23272a'), metalness: 0.1, roughness: 0.55 },
+  // substrat du GPU : verre-époxy vert très sombre
+  substrat: { color: srgb('#12201a'), metalness: 0.1, roughness: 0.5 },
   backplateLisse: { color: srgb('#18191b'), metalness: 0.6, roughness: 0.5 },
   // la carte de rugosité (moyenne 0,47) multiplie cette valeur : 0,85 donne un brossé à 0,4 environ
   backplateBrosse: { color: srgb('#4a4c51'), metalness: 1, roughness: 0.85, anisotropy: 0.85 },

@@ -62,19 +62,37 @@ export function adapterPiece(noeud, ctx) {
       g.setAttribute('aoSommet', g.attributes.color);
       g.deleteAttribute('color');
     }
-    const nom = o.material.name;
-    o.material.dispose();
-    o.material = ctx.m(nom, { ao: !!g.attributes.aoSommet });
+    const origine = o.material;
+    const m = ctx.m(origine.name, { ao: !!g.attributes.aoSommet });
+    // textures préparées dans Blender (PCB) : on les reprend sur le matériau du site
+    if (origine.map && !m.map) {
+      m.map = origine.map;
+      m.map.anisotropy = 8;
+      m.color.set(0xffffff);
+    }
+    if (origine.roughnessMap && !m.roughnessMap) {
+      m.roughnessMap = origine.roughnessMap;
+      m.roughness = 1;
+    }
+    if (origine.normalMap && !m.normalMap) {
+      m.normalMap = origine.normalMap;
+      m.normalScale.copy(origine.normalScale);
+    }
+    m.needsUpdate = true;
+    o.material = m;
   });
   // Pièces répétées (ailettes) : une géométrie modèle et la liste des positions
   // en x (propriété « instances » posée dans Blender) : un seul appel de dessin.
   const aInstancier = [];
-  noeud.traverse((o) => o.isMesh && Array.isArray(o.userData.instances) && aInstancier.push(o));
-  const m = new Matrix4();
+  // (« instances » : positions en x seulement ; « instances3 » : triplets x, y, z)
+  noeud.traverse((o) => o.isMesh && (o.userData.instances || o.userData.instances3) && aInstancier.push(o));
+  const m4 = new Matrix4();
   for (const o of aInstancier) {
-    const xs = o.userData.instances;
-    const inst = new InstancedMesh(o.geometry, o.material, xs.length);
-    xs.forEach((x, i) => inst.setMatrixAt(i, m.makeTranslation(o.position.x + x, o.position.y, o.position.z)));
+    const u = o.userData;
+    const pos = u.instances3 ?? u.instances.flatMap((x) => [x, 0, 0]);
+    const n = pos.length / 3;
+    const inst = new InstancedMesh(o.geometry, o.material, n);
+    for (let i = 0; i < n; i++) inst.setMatrixAt(i, m4.makeTranslation(o.position.x + pos[i * 3], o.position.y + pos[i * 3 + 1], o.position.z + pos[i * 3 + 2]));
     inst.name = o.name;
     inst.computeBoundingBox();
     inst.computeBoundingSphere();

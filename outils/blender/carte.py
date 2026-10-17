@@ -13,6 +13,7 @@ import commun  # noqa: E402
 import arriere  # noqa: E402
 import coque  # noqa: E402
 import refroidissement  # noqa: E402
+import electronique  # noqa: E402
 import ventilateurs  # noqa: E402
 
 debut = time.time()
@@ -21,5 +22,6 @@ ventilateurs.construire()
 coque.construire()
 arriere.construire()
 refroidissement.construire()
+electronique.construire()
 commun.exporter('carte.glb')
 print(f'carte.glb construit en {time.time() - debut:.1f} s')

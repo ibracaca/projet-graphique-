@@ -243,6 +243,8 @@ def exporter(nom_fichier):
         export_normals=True,
         export_texcoords=True,
         export_materials='EXPORT',
+        export_image_format='WEBP',
+        export_image_quality=90,
         export_draco_mesh_compression_enable=True,
         export_draco_mesh_compression_level=7,
         export_draco_position_quantization=16,

@@ -7,7 +7,8 @@ import * as D from '../../src/carte/dimensions.js';
 import { BARRES, FACADE, X_EMBOUT } from '../../src/carte/coque.js';
 import { FENETRE, PORTS } from '../../src/carte/arriere.js';
 import { CORE_PIPES } from '../../src/carte/refroidissement.js';
+import { MODULES_MEMOIRE } from '../../src/carte/electronique.js';
 
 const sortie = new URL('./dimensions.json', import.meta.url);
-writeFileSync(sortie, JSON.stringify({ ...D, FACADE, BARRES, X_EMBOUT, FENETRE, PORTS, CORE_PIPES }, null, 2));
+writeFileSync(sortie, JSON.stringify({ ...D, FACADE, BARRES, X_EMBOUT, FENETRE, PORTS, CORE_PIPES, MODULES_MEMOIRE }, null, 2));
 console.log('dimensions.json écrit');
