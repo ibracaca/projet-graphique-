@@ -13,6 +13,8 @@ import { creerCurseur } from './hud/curseur.js';
 import { creerHUD } from './hud/hud.js';
 import { construireActe1 } from './recit/acte1.js';
 import { construireActe2 } from './recit/acte2.js';
+import { construireActe3 } from './recit/acte3.js';
+import { creerInstrumentsActe3 } from './hud/instruments.js';
 import { creerAnnotations } from './recit/annotations.js';
 import { decoupage, scrollPourTemps } from './recit/cue.js';
 import { lancerDemarrage } from './recit/demarrage.js';
@@ -67,6 +69,7 @@ const { beats, total, finConstruit } = decoupage();
 // début de chaque beat construit, en vh de piste
 const positions = Object.fromEntries(beats.map((b) => [b.id, b.debut]));
 positions.finActe2 = beats.find((b) => b.id === 'thermique').fin;
+positions.finActe3 = beats.find((b) => b.id === 'image').fin;
 document.getElementById('piste').style.height = `${total + 100}vh`;
 
 const annotations = creerAnnotations({ carte, camera: rendu.camera });
@@ -78,6 +81,7 @@ let declencheur = null;
 const contexte = { tl, E: ETAT, carte, annotations, positions, son, reduit, sensDuScroll: () => declencheur?.direction ?? 1 };
 construireActe1(contexte);
 construireActe2(contexte);
+construireActe3(contexte);
 // La suite n'est pas encore construite.
 tl.set('#t-suite', { visibility: 'visible' }, finConstruit + 10).fromTo('#t-suite', { opacity: 0 }, { opacity: 1, duration: 40, ease: 'traine' }, finConstruit + 10);
 tl.set({}, {}, total); // la durée de la timeline = la longueur de la piste, en vh
@@ -138,6 +142,7 @@ function surChangementDeBeat(id) {
   beatPrecedent = id;
 }
 
+const instruments = creerInstrumentsActe3(rendu.camera);
 const regimeValeur = document.getElementById('regime-valeur');
 const regimeLigne = regimeValeur.parentElement;
 let regimeAffiche = -1;
@@ -175,6 +180,7 @@ gsap.ticker.add((temps, deltaMs) => {
     regimeValeur.textContent = String(regime).padStart(3, '0');
     regimeLigne.style.setProperty('--wght', String(Math.round(200 + regime * 5)));
   }
+  instruments.maj(ETAT);
 
   rendu.rendre(temps, dt);
 });

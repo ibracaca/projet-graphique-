@@ -43,8 +43,40 @@
     <div class="beat" id="echelle-thermique">
       <span class="hud-texte">FROID</span><span class="echelle-barre"></span><span class="hud-texte">CHAUD</span>
     </div>
+    <article class="beat bas-gauche" id="t-echelle">
+      <div class="palier"><span class="palier-exp">10<sup>−1</sup> m</span><p class="palier-texte">Carte : 359 mm.</p></div>
+      <div class="palier"><span class="palier-exp">10<sup>−2</sup> m</span><p class="palier-texte">GPU GB202 : 750 mm².</p></div>
+      <div class="palier"><span class="palier-exp">10<sup>−6</sup> m</span><p class="palier-texte">Procédé TSMC 4N.</p></div>
+      <div class="palier"><span class="palier-exp">10<sup>−8</sup> m</span><p class="palier-texte">92,2 milliards de transistors.</p></div>
+    </article>
+    <div class="beat" id="regle">
+      <span class="hud-texte">[ ÉCHELLE ]</span>
+      <div class="regle-corps"><svg id="regle-svg" aria-hidden="true"></svg></div>
+      <span id="regle-valeur" class="regle-valeur"></span>
+    </div>
+    <article class="beat bas-gauche" id="t-puce">
+      <h2 class="titre-beat"><span id="compteur-cuda">0</span> cœurs CUDA.</h2>
+      <ul class="donnees">
+        <li>170 SM</li>
+        <li>680 Tensor Cores, 5<sup>e</sup> génération</li>
+        <li>170 RT Cores, 4<sup>e</sup> génération</li>
+      </ul>
+    </article>
+    <article class="beat bas-gauche" id="t-memoire">
+      <h2 class="titre-beat">32 Go GDDR7.</h2>
+      <ul class="donnees">
+        <li>28 Gbit/s</li>
+        <li>Bus 512 bits</li>
+        <li>1 792 Go/s</li>
+      </ul>
+    </article>
+    <article class="beat bas-gauche" id="t-image">
+      <p class="chrono"><span id="chrono">0,00</span> ms<span id="chrono-point">.</span></p>
+      <p class="texte-beat">À 240 images par seconde, chaque image dispose de 4,17 ms.</p>
+    </article>
+    <ol class="beat" id="etapes"></ol>
     <article class="beat" id="t-suite">
-      <p class="hud-texte">[ ACTE III : EN CONSTRUCTION ]</p>
+      <p class="hud-texte">[ ACTE IV : EN CONSTRUCTION ]</p>
     </article>
   </div>
 

@@ -105,6 +105,7 @@ export function creerSon() {
 
   // Lecture de l'analyseur, valeurs lissées (moyenne glissante d'environ 150 ms).
   function analyser(dt) {
+    niveaux.allume = etat.allume && !etat.muet;
     if (!ctx || !etat.allume) {
       niveaux.basses *= 0.9;
       niveaux.aigus *= 0.9;

@@ -33,6 +33,7 @@ Servent uniquement de modèle pour construire la carte en 3D. Images © MSI, té
 | RX 7900 XTX | https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html (bus 384 bits : https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941) |
 | RX 9070 XT (écartée du tableau, 55 % contre 58 %) | https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070xt.html |
 | 16 modules GDDR7 de 2 Go | Photo du PCB : https://www.guru3d.com/story/photo-shows-nvidia-rtx-5090-pcb-with-gb202-gpu/ (et cohérence avec le bus 512 bits) |
+| Plan de la puce (beat 8) : 12 GPC de 16 SM, soit 192 SM sur la puce complète, dont 170 actifs sur la RTX 5090 ; 128 cœurs CUDA par SM (21 760 / 170) | Analyse de photo de la puce, Guru3D : https://www.guru3d.com/story/nvidia-gb202-blackwell-die-analysis-reveals-24576-cuda-core-configuration/ (organisation déduite de l'image, non publiée par NVIDIA ; elle sert au dessin, aucun de ces chiffres n'est affiché sauf 170 SM et 21 760 cœurs, vérifiés plus haut) |
 | DLSS 4.5, mode 6X (mars 2026) | https://www.neowin.net/news/nvidia-introduces-dlss-45-dynamic-multi-frame-generation-and-a-6x-mode/ |
 
 ## Polices

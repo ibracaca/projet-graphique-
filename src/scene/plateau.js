@@ -14,6 +14,9 @@ import {
 import { construireCarte } from '../carte/carte.js';
 import { COULEURS } from '../couleurs.js';
 import { creerCourant } from './courant.js';
+import { creerImage } from './image.js';
+import { creerMemoire } from './memoire.js';
+import { creerMicroscope } from './microscope.js';
 import { creerSouffle } from './souffle.js';
 
 // ---------------------------------------------------------------------------
@@ -54,6 +57,18 @@ export const ETAT = {
   scan: 0, // vision thermique : part de l'écran balayée (0 à 1)
   chauffe: 0,
   evacuation: 0,
+  // acte III
+  micro: 0, // visibilité du microscope (0 : la scène 3D, 1 : le microscope seul)
+  zoom: -1.3, // log10 de la largeur de champ du microscope, en mètres
+  inclinaison: 0.35, // inclinaison du plan observé (radians)
+  rotation: 0,
+  recentrage: 0, // 0 : zoom centré sur un SM, 1 : centré sur la puce
+  coeurs: 0, // part des SM allumés (beat 8)
+  vagues: 0, // intensité des vagues sur les temps
+  traces: 0, // pistes mémoire dessinées (beat 9)
+  donnees: 0, // paquets de données
+  image: 0, // progression de l'image (beat 10)
+  imageVisible: 0,
 };
 
 const NB_POUSSIERE = 2400;
@@ -181,6 +196,9 @@ export function creerPlateau(rendu) {
 
   const courant = creerCourant(carte.piece('pcb').groupe, rendu.qualite.reglages, rendu.renderer);
   const souffle = creerSouffle(scene, carte);
+  const microscope = creerMicroscope(scene);
+  const memoire = creerMemoire(carte.piece('pcb').groupe);
+  const image = creerImage(carte.piece('pcb').groupe);
 
   // Lumière rasante d'appoint sur le PCB pendant le beat 3 (vient du bord haut).
   const appoint = new DirectionalLight(0xffffff, 0);
@@ -281,6 +299,13 @@ export function creerPlateau(rendu) {
     th.uChauffe.value = E.chauffe;
     th.uEvacuation.value = E.evacuation;
     rendu.uniforms.uScan.value = E.scan;
+
+    // Acte III : microscope, mémoire, image. Quand le microscope couvre tout
+    // l'écran, la carte n'est plus dessinée.
+    microscope.maj(dt, E, son, camera);
+    carte.racine.visible = E.micro < 0.999;
+    memoire.maj(dt, E);
+    image.maj(dt, E);
 
     const u = rendu.uniforms;
     u.uGrain.value = E.grain;
