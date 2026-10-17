@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salle noire</title>
+<style>
+  /* Page provisoire : le site arrive avec la colonne vertébrale (scène, scroll, audio). */
+  :root { --noir: oklch(0 0 0); --graphite: oklch(0.30 0.005 260); --acier: oklch(0.52 0.006 260); --blanc: oklch(0.91 0.003 260); }
+  html, body { margin: 0; height: 100%; background: var(--noir); color: var(--acier); }
+  body { display: grid; place-items: center; font: 12px/1.6 'Martian Mono Variable', ui-monospace, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+  a { color: var(--blanc); text-decoration: none; border: 1px solid var(--graphite); padding: 10px 14px; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
+  a:hover { border-color: var(--acier); }
+  p { margin: 0 0 18px; text-align: center; }
+</style>
+</head>
+<body>
+  <div>
+    <p>[ EN CONSTRUCTION ]<br>Point de contrôle 2 : la carte</p>
+    <p><a href="/dev/carte.html">Ouvrir l'atelier de la carte</a></p>
+  </div>
+  <script type="module">import '@fontsource-variable/martian-mono/wdth.css';</script>
+</body>
+</html>

@@ -42,6 +42,21 @@ Servent uniquement de modèle pour construire la carte en 3D. Images © MSI, té
 | Archivo (variable) | Omnibus-Type | SIL Open Font License 1.1 | Fontsource (à installer par npm) |
 | Martian Mono (variable) | Evil Martians | SIL Open Font License 1.1 | Fontsource (à installer par npm) |
 
-## Ressources à venir
+## Éclairage et textures
 
-HDR de studio et textures (Poly Haven, ambientCG, CC0) : seront listés ici au moment du téléchargement.
+| Fichier | Source | Licence |
+|---|---|---|
+| `assets/hdri/studio_small_08_2k.hdr` | Poly Haven, « Studio Small 08 » : https://polyhaven.com/a/studio_small_08 (téléchargé via l'API publique, 2k) | CC0 |
+| `assets/textures/metal009/` (`color.jpg`, `roughness.jpg`, `normal.jpg`) | ambientCG, « Metal 009 » (métal brossé) : https://ambientcg.com/view?id=Metal009 (1K-JPG) | CC0 |
+
+Le HDR est filtré à l'exécution (`src/scene/environnement.js`) : seules ses sources lumineuses sont gardées, les murs du studio sont éteints.
+
+## Bibliothèques
+
+| Bibliothèque | Licence |
+|---|---|
+| Three.js | MIT |
+| GSAP | Licence standard GSAP (gratuite, y compris les plugins) |
+| Lenis | MIT |
+| Vite | MIT |
+| Playwright (outil de capture, pas dans le site) | Apache 2.0 |

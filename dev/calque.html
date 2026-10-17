@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calque de mesure</title>
+<style>
+  html, body { margin: 0; background: #fff; }
+  .wrap { position: relative; display: inline-block; }
+  img { display: block; width: 2000px; }
+  canvas { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<!-- Outil interne : grille en pixels de l'image source, pour relever les contours. -->
+<div class="wrap"><img id="ref"><canvas id="grille"></canvas></div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const img = document.getElementById('ref');
+  img.src = '/assets/reference/msi/' + (params.get('img') || 'produit-2.webp');
+  img.onload = () => {
+    const c = document.getElementById('grille');
+    const largeur = Number(params.get('l') || 2000);
+    img.style.width = largeur + 'px';
+    const k = largeur / img.naturalWidth;
+    c.width = largeur; c.height = img.naturalHeight * k;
+    const g = c.getContext('2d');
+    g.font = '11px monospace';
+    for (let p = 0; p <= img.naturalWidth; p += 10) {
+      g.strokeStyle = p % 50 ? 'rgba(255,0,0,0.12)' : 'rgba(255,0,0,0.5)';
+      g.beginPath(); g.moveTo(p * k, 0); g.lineTo(p * k, c.height); g.stroke();
+      if (p % 50 === 0) { g.fillStyle = 'red'; g.fillText(p, p * k + 2, 12); }
+    }
+    for (let p = 0; p <= img.naturalHeight; p += 10) {
+      g.strokeStyle = p % 50 ? 'rgba(0,0,255,0.12)' : 'rgba(0,0,255,0.5)';
+      g.beginPath(); g.moveTo(0, p * k); g.lineTo(c.width, p * k); g.stroke();
+      if (p % 50 === 0) { g.fillStyle = 'blue'; g.fillText(p, 2, p * k - 2); }
+    }
+  };
+</script>
+</body>
+</html>

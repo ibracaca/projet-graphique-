@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier de la carte</title>
+<style>
+  :root {
+    --noir: oklch(0 0 0);
+    --graphite: oklch(0.30 0.005 260);
+    --acier: oklch(0.52 0.006 260);
+    --alu: oklch(0.74 0.005 260);
+    --blanc: oklch(0.91 0.003 260);
+    --mono: 'Martian Mono Variable', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--noir); color: var(--alu); font-family: var(--mono); overflow: hidden; }
+  header {
+    position: fixed; inset: 0 0 auto 0; height: 44px; display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; z-index: 2;
+    border-bottom: 1px solid var(--graphite); background: var(--noir);
+  }
+  header .titre { color: var(--blanc); margin-right: 14px; }
+  header .sep { width: 1px; height: 18px; background: var(--graphite); margin: 0 8px; }
+  button {
+    font: inherit; color: var(--acier); background: none; border: 1px solid var(--graphite); padding: 6px 9px; cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  }
+  button[aria-pressed="true"] { color: var(--blanc); border-color: var(--acier); }
+  label { display: flex; align-items: center; gap: 6px; color: var(--acier); }
+  input[type="range"] { width: 90px; accent-color: var(--alu); }
+  main { position: fixed; inset: 44px 0 0 0; display: grid; grid-template-columns: 1fr 1fr; }
+  main.superpose, main.libre { grid-template-columns: 1fr; }
+  main.libre #voletPhoto { display: none; }
+  .volet { position: relative; overflow: hidden; border-right: 1px solid var(--graphite); }
+  .volet .legende { position: absolute; left: 12px; bottom: 10px; font-size: 10px; letter-spacing: 0.06em; color: var(--acier); text-transform: uppercase; z-index: 1; }
+  #photo { position: absolute; background: #fff; }
+  #photo img { position: absolute; }
+  main.superpose #voletPhoto { position: absolute; inset: 0; border: 0; }
+  main.superpose #voletRendu { position: absolute; inset: 0; }
+  canvas { display: block; position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<header>
+  <span class="titre">[ ATELIER / CARTE ]</span>
+  <span id="vues"></span>
+  <span class="sep"></span>
+  <button data-mode="cote">Côte à côte</button>
+  <button data-mode="superpose">Superposé</button>
+  <span class="sep"></span>
+  <label>Éclaté <input id="eclate" type="range" min="0" max="1" step="0.01" value="0"></label>
+  <label>Matière <input id="matiere" type="range" min="0" max="1" step="0.01" value="1"></label>
+  <label>Opacité <input id="opacite" type="range" min="0" max="1" step="0.01" value="0.5"></label>
+</header>
+<main id="volets">
+  <div class="volet" id="voletPhoto"><div id="photo"><img alt=""></div><span class="legende" id="legendePhoto"></span></div>
+  <div class="volet" id="voletRendu"><span class="legende">Rendu Three.js, carte construite par code</span></div>
+</main>
+<script type="module" src="/src/dev/atelier.js"></script>
+</body>
+</html>
