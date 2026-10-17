@@ -20,6 +20,8 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | 4. Acte II | Validé |
 | 5. Acte III | Validé |
 | 6. Acte IV | Validé |
+| 7. Refonte 3D : carte modélisée dans Blender, rendu de film produit | En validation |
+| 8. Refonte 3D : la ville | À faire |
 
 ## Ce que fait le site aujourd'hui
 
@@ -40,7 +42,8 @@ Si Windows est réglé pour réduire les animations, le site passe en version ca
 
 Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le site tourne). Elle sert à comparer la carte 3D aux photos officielles MSI.
 
-- **Boutons de vue** : Face, Dos, 3/4 avant, 3/4 arrière, Côté ports, Libre.
+- **Boutons de vue** : Face, Dos, 3/4 avant, 3/4 arrière, Côté ports, Ventilateur (gros plan face à `fan.png`), Libre, Libre dos.
+- **Paramètres d'adresse** utiles : `?isoler=pcb` (une seule pièce), `&pos=x,y,z&cible=x,y,z` (cadrage libre en mm).
 - **Côte à côte / Superposé** : la photo à gauche et le rendu à droite, ou le rendu posé par-dessus la photo (réglage d'opacité).
 - **Éclaté** : démonte la carte pièce par pièce.
 - **Matière** : passe du filaire lumineux (0) à la matière réelle (1).
@@ -66,9 +69,20 @@ Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le sit
 | La règle d'échelle, le compteur CUDA, le chronomètre | `src/hud/instruments.js` |
 | Le courant, le flux d'air, la vision thermique | `src/scene/courant.js`, `src/scene/souffle.js`, `src/scene/thermique.js` |
 | Les mesures de la carte | `src/carte/dimensions.js` |
-| Les matières (métal, plastique, verre fumé) | `src/carte/materiaux.js` |
-| Une pièce de la carte | `src/carte/` : `coque.js`, `ventilateurs.js`, `refroidissement.js`, `electronique.js`, `arriere.js` |
+| Les matières (métal, plastique, verre fumé) | `src/carte/materiaux.js` (liste `RECETTES`, mêmes noms que dans Blender) |
+| La forme d'une pièce de la carte | `outils/blender/` : `coque.py`, `ventilateurs.py`, `refroidissement.py`, `electronique.py`, `arriere.py` (puis régénérer le modèle, voir plus bas) |
+| Les boîtes à lumière, l'occlusion, le flou | `src/scene/plateau.js` (`boites`, `BOITES`) et `src/scene/rendu.js` (`NIVEAUX`, passe `Composition`) |
 | Les textes de référence et l'état des chiffres | `docs/07-textes-des-beats.md` |
+
+## Régénérer le modèle 3D de la carte
+
+La carte est modélisée par des scripts Python que Blender exécute sans s'ouvrir. Il faut Blender 5 (gratuit, blender.org), installé à l'emplacement par défaut.
+
+1. Modifie un script de `outils/blender/` (ou une cote de `src/carte/dimensions.js`).
+2. Double-clique sur **`outils/blender/construire.bat`** : il recopie les cotes, lance Blender et réécrit `assets/models/carte.glb` (environ 30 secondes).
+3. Recharge le site ou l'atelier.
+
+Les ressources de vérification : `node outils/mesure.mjs` (appels de dessin et triangles par image), `node outils/sonde-atelier.mjs` (code exécuté dans l'atelier, capture).
 
 ## Les dossiers
 
@@ -76,6 +90,8 @@ Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le sit
 |---|---|
 | `src/` | Le code du site |
 | `dev/` | Pages d'atelier (outils de mise au point, pas le site) |
+| `outils/blender/` | Scripts de modélisation de la carte (Blender) |
+| `public/draco/` | Décodeur Draco (décompresse le modèle dans le navigateur) |
 | `assets/` | Musique, éclairage HDR, textures, photos de référence (non intégrées au site) |
 | `captures/` | Captures d'écran des points de contrôle |
 | `outils/` | Scripts de capture d'écran automatique (Playwright) |

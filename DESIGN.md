@@ -257,26 +257,32 @@ Croix fine de 24 px avec un point central, qui suit la souris avec retard (`0.20
 
 ---
 
-## 7. La carte 3D (construite par code)
+## 7. La carte 3D (modélisée par script dans Blender)
 
-Unité : 1 unité Three.js = 1 mm. Chaque pièce est un objet séparé avec une position assemblée, une position éclatée et deux états (filaire lumineux, matière réelle).
+Refonte du 18/10/2026 (`REFONTE-3D.md`, plan dans `docs/10-plan-refonte.md`). Unité : 1 unité = 1 mm, repère de la carte (X le long, Y vers le haut, Z vers l'avant). Chaque pièce reste un objet séparé avec une position assemblée, une position éclatée et deux états (filaire lumineux, matière réelle).
+
+**Chaîne de fabrication** : des scripts Python pilotent Blender en ligne de commande (`outils/blender/`), construisent les onze pièces et exportent `assets/models/carte.glb` (compressé en Draco, textures en WebP). Le site le charge (`src/carte/modele.js`) et remplace chaque matériau par le sien, du même nom (`src/carte/materiaux.js`), ce qui garde le balayage filaire / matière, la vision thermique et les néons. Les cotes partagées viennent de `src/carte/dimensions.js` (recopiées dans `outils/blender/dimensions.json`). Si le `.glb` manque, l'ancien modèle construit en Three.js (`src/carte/*.js`) prend le relais.
 
 | N° | Pièce | Construction |
 |---|---|---|
-| 01 | Coque | Formes 2D extrudées avec biseaux : grand panneau à facettes, coin sombre en verre fumé, pans coupés aux extrémités. |
-| 02 | STORMFORCE ×3 | 7 pales en faucille (surface paramétrique), anneau extérieur fermé, moyeu lisse. Instances. |
-| 03 | TRI FROZR 4 | Ailettes fines en instances (des centaines, une seule géométrie), profil ondulé dans le shader de sommets. |
-| 04 | Core Pipes | 9 barres à section carrée sur la plaque de base, puis tubes ronds courbés (`TubeGeometry`) vers les ailettes, embouts ronds qui dépassent. |
-| 05 | Plaque de base | Bloc nickelé usiné, vis aux coins. |
-| 06 | PCB | Plaque noire mate, contacts PCIe dorés. |
-| 07 | GPU GB202 | Substrat et die au centre du PCB. |
-| 08 | GDDR7 | 16 modules autour du GPU. |
-| 09 | Connecteur 16 broches | Bloc à 12 + 4 broches en haut à droite du PCB. |
-| 10 | Backplate | Deux tons séparés par la diagonale, fenêtre ajourée à barres obliques (sans dragon). |
-| 11 | Sorties | Équerre argent ajourée, 3 DisplayPort, 1 HDMI. |
-| | Zones RGB | Barres « /// » haut et bas, bague de l'écusson, liseré du dessus. Matériau émissif marqué « néon ». |
+| 01 | Coque | Plaque percée, lunettes en relief autour des ventilateurs, facettes inclinées et embout à chanfreins, arêtes arrondies (biseaux de 0,7 à 0,9 mm). Verres fumés épais et inclinés, nervures du flanc, écusson en goutte. |
+| 02 | STORMFORCE ×3 | 7 pales épaisses à profil d'aile (bord d'attaque rond, bord de fuite fin, dents en escalier près du bout), anneau à lèvre roulée et nervures, capot tourné à gravure concentrique (sans logo), stator à quatre bras. Occlusion cuite par sommet. |
+| 03 | TRI FROZR 4 | Ailettes de tôle à bord ondulé (Wave Curved 4.0) et encoches en V (Air Antegrade Fin 2.0), en instances par variante, barrettes de maintien. |
+| 04 | Core Pipes | 9 caloducs dont la section passe du carré (sur la plaque) au rond, cintrés, embouts sertis à épaulement. |
+| 05 | Plaque de base | Bloc nickelé étagé à pattes, plot de contact au-dessus du die, vis à ressort. |
+| 06 | PCB | Texture générée (pistes en relief sous le vernis, vias, sérigraphie abstraite sans texte), anneaux dorés, selfs, MOSFET, condensateurs polymère, centaines de CMS en instances, doigts PCIe. |
+| 07 | GPU GB202 | Substrat vert sombre, cadre de renfort, condensateurs autour du die (25,5 × 29,4 mm, inchangé). |
+| 08 | GDDR7 | 16 boîtiers à arêtes arrondies et repère de broche, positions inchangées. |
+| 09 | Connecteur 16 broches | Boîtier à 12 alvéoles de puissance et 4 de signal, broches dorées au fond, clip. |
+| 10 | Backplate | Deux tons : alu brossé strié le long de la diagonale, métal sombre ; fenêtre à barres obliques, plaque d'about percée, vis bombées cruciformes. |
+| 11 | Sorties | Équerre zinguée, patte de fixation, ports DisplayPort et HDMI à leur vraie forme avec languette. |
+| | Zones RGB | Barres « /// » en conduits de lumière encastrés dans le verre fumé, avec crochets qui passent sur la tranche ; bague de l'écusson. Marquées « néon » (`__neon` dans le modèle). |
 
-Matières : environnement HDR de studio Poly Haven (CC0, 2k), textures ambientCG ou Poly Haven (CC0) pour l'alu brossé et le métal, normal map procédurale pour le PCB. Les textes « GEFORCE RTX » et logos de la vraie carte ne sont pas reproduits.
+Le filaire n'est plus calculé sur les maillages : chaque pièce fournit ses lignes de construction (`<pièce>__filaire`), tirées des formes nettes avant les biseaux. Le dégradé du beat 11 utilise de même `coque__aretes` et `backplate__aretes`.
+
+**Rendu** (`src/scene/rendu.js`, `src/scene/plateau.js`) : MSAA ×4 sur la composition, occlusion ambiante GTAO et profondeur de champ discrète (flou en disque piloté par la profondeur, dans la passe de composition) quand la carte est entière en matière, trois boîtes à lumière (`RectAreaLight`) qui suivent la lumière d'atelier. Tone mapping Neutral (AgX essayé : il éclaircit les noirs et blanchit les halos). La qualité adaptative coupe d'abord l'occlusion et le flou, puis réduit le MSAA, puis la résolution.
+
+Les textes « GEFORCE RTX » et les logos de la vraie carte ne sont pas reproduits.
 
 ---
 

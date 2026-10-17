@@ -50,6 +50,9 @@ Servent uniquement de modèle pour construire la carte en 3D. Images © MSI, té
 | `assets/hdri/studio_small_08_2k.hdr` | Poly Haven, « Studio Small 08 » : https://polyhaven.com/a/studio_small_08 (téléchargé via l'API publique, 2k) | CC0 |
 | `assets/textures/metal009/` (`color.jpg`, `roughness.jpg`, `normal.jpg`) | ambientCG, « Metal 009 » (métal brossé) : https://ambientcg.com/view?id=Metal009 (1K-JPG) | CC0 |
 
+| `assets/models/carte.glb` | Modélisé pour ce projet par scripts Blender (`outils/blender/`) ; la texture du PCB est générée par le script (`electronique.py`), sans ressource extérieure | Création du projet |
+| `public/draco/` | Décodeur Draco fourni avec Three.js (`three/examples/jsm/libs/draco/gltf/`) | Apache 2.0 |
+
 Le HDR est filtré à l'exécution (`src/scene/environnement.js`) : seules ses sources lumineuses sont gardées, les murs du studio sont éteints.
 
 ## Bibliothèques
