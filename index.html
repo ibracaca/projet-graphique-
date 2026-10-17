@@ -3,22 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Salle noire</title>
-<style>
-  /* Page provisoire : le site arrive avec la colonne vertébrale (scène, scroll, audio). */
-  :root { --noir: oklch(0 0 0); --graphite: oklch(0.30 0.005 260); --acier: oklch(0.52 0.006 260); --blanc: oklch(0.91 0.003 260); }
-  html, body { margin: 0; height: 100%; background: var(--noir); color: var(--acier); }
-  body { display: grid; place-items: center; font: 12px/1.6 'Martian Mono Variable', ui-monospace, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
-  a { color: var(--blanc); text-decoration: none; border: 1px solid var(--graphite); padding: 10px 14px; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
-  a:hover { border-color: var(--acier); }
-  p { margin: 0 0 18px; text-align: center; }
-</style>
+<title>Salle noire : GeForce RTX 5090 Gaming Trio</title>
+<meta name="description" content="Concept non officiel de lancement, en motion design, sur « Genesis » de Grimes.">
+<link rel="stylesheet" href="/src/styles/site.css">
 </head>
 <body>
-  <div>
-    <p>[ EN CONSTRUCTION ]<br>Point de contrôle 2 : la carte</p>
-    <p><a href="/dev/carte.html">Ouvrir l'atelier de la carte</a></p>
+  <!-- La scène 3D, unique, en fond. -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <!-- Textes des beats, posés par-dessus la scène et animés par la timeline. -->
+  <div id="textes">
+    <article class="beat" id="t-ombre">
+      <h1 class="nom-carte" aria-label="GeForce RTX 5090 Gaming Trio"><span id="nom-carte"></span></h1>
+      <p class="cote"><span class="cote-trait"></span><span id="cote-texte">359 × 149 × 70 mm</span></p>
+    </article>
+    <article class="beat" id="t-eclate">
+      <h2 class="titre-beat" id="titre-eclate">Vue éclatée.</h2>
+    </article>
+    <article class="beat" id="t-suite">
+      <p class="hud-texte">[ ACTE II : EN CONSTRUCTION ]</p>
+    </article>
   </div>
-  <script type="module">import '@fontsource-variable/martian-mono/wdth.css';</script>
+
+  <!-- Annotations de la vue éclatée : lignes de cote et étiquettes. -->
+  <svg id="annotations-lignes" aria-hidden="true"></svg>
+  <div id="annotations"></div>
+
+  <!-- Interface : réticules, rail, label du beat, coordonnées, commandes. -->
+  <div id="hud">
+    <svg class="reticule" data-coin="hg" viewBox="-8 -8 16 16"><path d="M-7 0H7M0 -7V7"/></svg>
+    <svg class="reticule" data-coin="hd" viewBox="-8 -8 16 16"><path d="M-7 0H7M0 -7V7"/></svg>
+    <svg class="reticule" data-coin="bg" viewBox="-8 -8 16 16"><path d="M-7 0H7M0 -7V7"/></svg>
+    <svg class="reticule" data-coin="bd" viewBox="-8 -8 16 16"><path d="M-7 0H7M0 -7V7"/></svg>
+    <div id="label-beat" class="hud-texte" aria-live="polite"></div>
+    <div id="coordonnees" class="hud-texte">CAM X +0000 Y +0000 Z +0000</div>
+    <nav id="rail" aria-label="Actes"></nav>
+    <div id="commandes">
+      <button id="btn-son" class="bouton-hud" data-curseur="bouton" aria-pressed="true">
+        <span id="btn-son-texte">[ SON : ON ]</span><canvas id="oscillo" width="80" height="24"></canvas>
+      </button>
+      <button id="btn-film" class="bouton-hud" data-curseur="bouton" aria-pressed="false">[ MODE FILM ]</button>
+    </div>
+    <div id="indication" class="hud-texte">[ DÉFILER ]<span class="indication-trait"></span></div>
+  </div>
+
+  <!-- Écran de démarrage. -->
+  <section id="demarrage" aria-label="Démarrage">
+    <div class="hud-texte demarrage-label">[ BOOT ]</div>
+    <ol id="post"></ol>
+    <div id="compteur" aria-label="Chargement">000</div>
+    <div id="choix">
+      <button id="btn-allumer" class="bouton-chanfrein" data-curseur="bouton">Allumer</button>
+      <button id="btn-sans-son" class="bouton-chanfrein discret" data-curseur="bouton">Sans son</button>
+    </div>
+  </section>
+
+  <div id="curseur" aria-hidden="true">
+    <svg viewBox="-20 -20 40 40">
+      <g class="croix"><path d="M-11 0H-4M4 0H11M0 -11V-4M0 4V11"/><circle r="1.2"/></g>
+      <g class="coins"><path d="M-16 -10V-16H-10M10 -16H16V-10M16 10V16H10M-10 16H-16V10"/></g>
+    </svg>
+    <span id="curseur-num"></span>
+  </div>
+
+  <!-- La piste : sa hauteur fixe la durée du film au scroll. -->
+  <main id="piste" aria-hidden="true"></main>
+
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

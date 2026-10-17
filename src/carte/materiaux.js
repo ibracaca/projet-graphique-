@@ -197,7 +197,8 @@ export function materiauFilaire(balayage) {
         float rempli = smoothstep(f + 1.0, f - 10.0, s);
         float bord = 1.0 - smoothstep(0.0, 5.0, abs(s - f));
         bord *= step(0.001, uRemplir) * step(uRemplir, 0.999);
-        float a = uOpacite * (1.0 - rempli);
+        // pièce entièrement remplie : plus aucun filaire, même sur ses derniers millimètres
+        float a = uOpacite * (1.0 - rempli) * (1.0 - smoothstep(0.985, 1.0, uRemplir));
         vec3 c = mix(uCouleur, uFront * 3.0, bord);
         float alpha = max(a, bord);
         if (alpha < 0.002) discard;
@@ -262,7 +263,7 @@ export function materiauNeon(balayage, { axe = 'x', min = -1, max = 1, mode = 'a
       }
       void main() {
         if (dot(vMonde, uDir) > frontBalayage()) discard;
-        vec3 eteint = vec3(0.012);
+        vec3 eteint = vec3(0.0015); // tube éteint : presque noir, rien n'existe sans lumière
         vec3 c = mix(eteint, degrade(vT) * uIntensite, uAllumage);
         gl_FragColor = vec4(c, 1.0);
       }

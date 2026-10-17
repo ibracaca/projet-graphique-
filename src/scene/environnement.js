@@ -52,7 +52,7 @@ export function filtrerHDR(renderer, hdr, { seuil = 2.5, gain = 1, plancher = 0.
   return cible;
 }
 
-export function chargerEnvironnement(renderer, options) {
+export function chargerEnvironnement(renderer, options, progression) {
   return new Promise((ok, echec) => {
     const chargeur = new HDRLoader();
     chargeur.setDataType(FloatType);
@@ -67,7 +67,7 @@ export function chargerEnvironnement(renderer, options) {
         pmrem.dispose();
         ok(env);
       },
-      undefined,
+      (e) => progression?.(e.loaded, e.total || 6.3e6),
       echec,
     );
   });

@@ -15,13 +15,25 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | Étape | État |
 |---|---|
 | 1. Charte (`DESIGN.md`) | Validée |
-| 2. Carte 3D construite par code | En validation : ouvre l'atelier depuis la page d'accueil |
-| 3. Colonne vertébrale (scène, scroll, son), puis acte I | À venir |
+| 2. Carte 3D construite par code | Validée |
+| 3. Colonne vertébrale (scène, scroll, son), puis acte I | En validation |
 | 4. Actes II, III et IV | À venir |
+
+## Ce que fait le site aujourd'hui
+
+1. **Démarrage** : des lignes de BIOS s'écrivent ; chaque « OK » attend le vrai chargement de la ressource, le compteur suit les octets reçus. Deux boutons : « Allumer » (lance la musique) et « Sans son ».
+2. **Acte I** : un faisceau rasant révèle la carte par fragments, son nom se décode, puis elle se démonte en vue éclatée filaire, avec les onze pièces annotées.
+3. **Griffure** : trois entailles de lumière ferment l'acte I. L'acte II n'est pas encore construit.
+
+Pendant l'acte I, le son est d'abord étouffé, comme entendu à travers le boîtier, puis il s'ouvre à mesure qu'on descend.
+
+En bas à gauche : **[ SON ]** coupe ou remet la musique (avec un petit oscilloscope du signal réel), **[ MODE FILM ]** fait défiler le site tout seul au rythme de la musique (un coup de molette le met en pause). Le rail à gauche montre les quatre actes ; un clic sur un acte y amène.
+
+Si Windows est réglé pour réduire les animations, le site passe en version calme : mêmes contenus, fondus au lieu des griffures, pas de Mode film.
 
 ## L'atelier de la carte
 
-Page `dev/carte.html` (lien sur la page d'accueil). Elle sert à comparer la carte 3D aux photos officielles MSI.
+Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le site tourne). Elle sert à comparer la carte 3D aux photos officielles MSI.
 
 - **Boutons de vue** : Face, Dos, 3/4 avant, 3/4 arrière, Côté ports, Libre.
 - **Côte à côte / Superposé** : la photo à gauche et le rendu à droite, ou le rendu posé par-dessus la photo (réglage d'opacité).
@@ -33,13 +45,19 @@ Page `dev/carte.html` (lien sur la page d'accueil). Elle sert à comparer la car
 
 | Je veux changer... | Fichier |
 |---|---|
-| Les couleurs de la charte (tokens oklch) | `src/couleurs.js` (et `DESIGN.md` pour la justification) |
+| Les couleurs de l'interface (tokens oklch) | `src/styles/site.css`, tout en haut (`:root`) |
+| Les couleurs dans la 3D (néons, griffures) | `src/couleurs.js` (mêmes valeurs ; `DESIGN.md` pour la justification) |
+| Les tailles de texte, les marges | `src/styles/site.css` (`--fs-...`, `--marge`) |
+| Les courbes d'animation | `src/main.js` (`masse`, `traine`, `coupe`) et `src/styles/site.css` |
+| Les textes affichés (titres, cotes) | `index.html` |
+| Les lignes du démarrage | `src/recit/demarrage.js` (liste `LIGNES`) |
+| Les noms des pièces de la vue éclatée | `src/carte/carte.js` (liste `PIECES`) |
+| La cue sheet : ordre des beats, durée de scroll, temps musical | `src/recit/cue.js` (liste `BEATS`) |
+| La chorégraphie de l'acte I | `src/recit/acte1.js` (positions en vh de scroll) |
 | Les mesures de la carte | `src/carte/dimensions.js` |
 | Les matières (métal, plastique, verre fumé) | `src/carte/materiaux.js` |
 | Une pièce de la carte | `src/carte/` : `coque.js`, `ventilateurs.js`, `refroidissement.js`, `electronique.js`, `arriere.js` |
-| Les noms des pièces de la vue éclatée | `src/carte/carte.js` (liste `PIECES`) |
-| Les textes du site | `docs/07-textes-des-beats.md` (version de référence) ; les fichiers du site seront indiqués ici quand ils existeront |
-| La cue sheet (synchro avec la musique) | `DESIGN.md`, section 5 ; le fichier de code sera indiqué ici |
+| Les textes de référence et l'état des chiffres | `docs/07-textes-des-beats.md` |
 
 ## Les dossiers
 

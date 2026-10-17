@@ -1,0 +1,386 @@
+/* Salle noire : tokens et mise en page (DESIGN.md, sections 2, 3 et 6). */
+
+:root {
+  /* Neutres : noir OLED, gris métal légèrement froids. Jamais de #fff. */
+  --noir: oklch(0 0 0);
+  --graphite: oklch(0.3 0.005 260);
+  --acier: oklch(0.52 0.006 260);
+  --alu: oklch(0.74 0.005 260);
+  --blanc: oklch(0.91 0.003 260);
+
+  /* Le dégradé MSI, mesuré sur les barres RGB de la carte. */
+  --msi-bleu: oklch(0.7 0.14 245);
+  --msi-indigo: oklch(0.63 0.19 284);
+  --msi-violet: oklch(0.6 0.22 308);
+  --msi-rose: oklch(0.67 0.25 328);
+  --degrade-msi: linear-gradient(in oklch, var(--msi-bleu), var(--msi-indigo), var(--msi-violet), var(--msi-rose));
+
+  /* Polices. */
+  --grotesque: 'Archivo Variable', sans-serif;
+  --mono: 'Martian Mono Variable', ui-monospace, monospace;
+
+  /* Unité : la largeur d'écran, sauf en ultrawide où l'on suit la hauteur. */
+  --u: min(1vw, 1.7778vh);
+
+  /* Échelle typographique, rapport 1,5 ; calée sur 1366 et 3840 px. */
+  --fs-hud: clamp(10px, calc(0.2425 * var(--u) + 6.69px), 16px);
+  --fs-texte: clamp(15px, calc(0.4446 * var(--u) + 8.93px), 26px);
+  --fs-lead: clamp(22px, calc(0.7276 * var(--u) + 12.06px), 40px);
+  --fs-titre: clamp(44px, calc(2.668 * var(--u) + 7.56px), 110px);
+  --fs-display: clamp(140px, calc(9.7 * var(--u) + 7.5px), 380px);
+
+  /* Marges : réticules et HUD collés aux bords réels de l'écran. */
+  --marge: clamp(18px, calc(1.6 * var(--u)), 56px);
+
+  /* Courbes signatures (les mêmes que CustomEase côté JS). */
+  --masse: cubic-bezier(0.33, 0, 0, 1);
+  --traine: cubic-bezier(0.19, 1, 0.22, 1);
+  --coupe: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --chanfrein: 7px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--noir);
+  color: var(--alu);
+  cursor: none;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar { display: none; }
+
+body {
+  margin: 0;
+  background: var(--noir);
+  font-family: var(--grotesque);
+  font-size: var(--fs-texte);
+  font-variation-settings: 'wdth' 100;
+  font-weight: 380;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button, a { cursor: none; font: inherit; }
+
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+#piste { position: relative; width: 1px; pointer-events: none; }
+
+/* --- Textes de beats ----------------------------------------------------- */
+
+#textes { position: fixed; inset: 0; pointer-events: none; }
+.beat { position: absolute; visibility: hidden; }
+
+#t-ombre {
+  left: calc(var(--marge) * 2.2);
+  bottom: calc(var(--marge) * 2.4);
+  max-width: 80vw;
+}
+.nom-carte {
+  margin: 0;
+  font-size: var(--fs-titre);
+  font-variation-settings: 'wdth' 125;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--blanc);
+  white-space: nowrap;
+}
+.cote {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0.9em 0 0;
+  font-family: var(--mono);
+  font-size: var(--fs-hud);
+  letter-spacing: 0.06em;
+  color: var(--acier);
+}
+.cote-trait {
+  display: block;
+  width: calc(6 * var(--u));
+  height: 1px;
+  background: var(--acier);
+  transform-origin: left center;
+}
+
+#t-eclate {
+  left: calc(var(--marge) * 2.2);
+  top: calc(var(--marge) * 3.2);
+}
+.titre-beat {
+  margin: 0;
+  font-size: var(--fs-titre);
+  font-variation-settings: 'wdth' 125;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--blanc);
+}
+
+#t-suite { inset: 0; display: grid; place-items: center; }
+
+/* --- HUD ------------------------------------------------------------------ */
+
+.hud-texte {
+  font-family: var(--mono);
+  font-size: var(--fs-hud);
+  font-variation-settings: 'wdth' 100;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--alu);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+#hud { position: fixed; inset: 0; pointer-events: none; opacity: 0; }
+
+.reticule {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+  stroke: var(--alu);
+  stroke-width: 1;
+  fill: none;
+  opacity: 0.7;
+  will-change: transform;
+}
+
+#label-beat { position: absolute; left: calc(var(--marge) + 22px); top: calc(var(--marge) - 6px); }
+#coordonnees { position: absolute; right: calc(var(--marge) + 22px); bottom: calc(var(--marge) - 6px); font-variant-numeric: tabular-nums; }
+
+#rail {
+  position: absolute;
+  left: var(--marge);
+  top: 50%;
+  height: 42vh;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  pointer-events: auto;
+}
+.rail-segment {
+  position: relative;
+  width: 14px;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.rail-segment::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--graphite);
+}
+.rail-remplissage {
+  position: absolute;
+  left: 6px;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--degrade-msi);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+/* encoche oblique entre deux actes, à l'angle signature */
+.rail-segment + .rail-segment::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -8px;
+  width: 7px;
+  height: 1px;
+  background: var(--acier);
+  transform: rotate(-32deg);
+}
+.rail-nom {
+  position: absolute;
+  left: 22px;
+  top: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.24s var(--traine), transform 0.24s var(--traine);
+}
+.rail-segment:hover .rail-nom, .rail-segment:focus-visible .rail-nom { opacity: 0.8; transform: none; }
+
+#commandes {
+  position: absolute;
+  left: calc(var(--marge) + 22px);
+  bottom: calc(var(--marge) - 12px);
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+.bouton-hud {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  color: var(--alu);
+  background: none;
+  border: 1px solid var(--graphite);
+  font-family: var(--mono);
+  font-size: var(--fs-hud);
+  letter-spacing: 0.06em;
+  clip-path: polygon(0 0, calc(100% - var(--chanfrein)) 0, 100% var(--chanfrein), 100% 100%, 0 100%);
+  transition: border-color 0.15s var(--traine), color 0.15s var(--traine);
+}
+.bouton-hud:hover { border-color: var(--acier); color: var(--blanc); }
+.bouton-hud[aria-pressed='true']#btn-film { color: var(--blanc); border-color: var(--alu); }
+#oscillo { width: 40px; height: 12px; display: block; }
+
+#indication {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--marge) + 4px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.indication-trait {
+  display: block;
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(var(--alu), transparent);
+  animation: indication 2.2s var(--masse) infinite;
+  transform-origin: top;
+}
+@keyframes indication {
+  0% { transform: scaleY(0); opacity: 1; }
+  60% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+/* --- Annotations ---------------------------------------------------------- */
+
+#annotations-lignes { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; overflow: visible; }
+#annotations-lignes path { fill: none; stroke: var(--alu); stroke-width: 1; opacity: 0.7; }
+#annotations-lignes circle { fill: var(--blanc); }
+#annotations { position: fixed; inset: 0; pointer-events: none; }
+.annotation {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 10px;
+  align-items: baseline;
+  white-space: nowrap;
+  opacity: 0;
+  will-change: transform;
+  /* aplat noir à un bord biseauté : masque les lignes du filaire derrière le texte */
+  padding: 3px 12px 4px 6px;
+  margin: -3px 0 0 -6px;
+  background: var(--noir);
+}
+.annotation-num { font-family: var(--mono); font-size: var(--fs-hud); color: var(--acier); letter-spacing: 0.06em; }
+.annotation-nom { font-size: calc(var(--fs-texte) * 0.92); font-variation-settings: 'wdth' 112; font-weight: 480; color: var(--blanc); }
+.annotation-detail { grid-column: 2; font-family: var(--mono); font-size: var(--fs-hud); color: var(--acier); letter-spacing: 0.04em; margin-top: 2px; }
+
+/* --- Démarrage ------------------------------------------------------------ */
+
+#demarrage {
+  position: fixed;
+  inset: 0;
+  background: var(--noir);
+  z-index: 10;
+}
+.demarrage-label { position: absolute; left: calc(var(--marge) + 22px); top: calc(var(--marge) - 6px); }
+#post {
+  position: absolute;
+  left: calc(var(--marge) * 2.2);
+  top: 50%;
+  transform: translateY(-60%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: var(--fs-texte);
+  letter-spacing: 0.02em;
+  color: var(--alu);
+  width: min(46ch, 70vw);
+}
+#post li { display: flex; gap: 0.6ch; height: 1.9em; align-items: center; white-space: pre; }
+#post .post-cle { color: var(--acier); }
+#post .post-points { flex: 1; overflow: hidden; color: var(--graphite); }
+#post .post-valeur { color: var(--blanc); }
+#post .post-etat { width: 3ch; text-align: right; color: var(--acier); }
+#post .post-etat.ok { color: var(--blanc); }
+#compteur {
+  position: absolute;
+  right: calc(var(--marge) * 2.2);
+  bottom: calc(var(--marge) * 1.8);
+  font-family: var(--mono);
+  font-size: var(--fs-titre);
+  font-variation-settings: 'wdth' 100;
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  color: var(--blanc);
+  line-height: 1;
+}
+#choix {
+  position: absolute;
+  left: calc(var(--marge) * 2.2);
+  top: calc(50% + 6.5em);
+  display: flex;
+  gap: 14px;
+  visibility: hidden;
+}
+.bouton-chanfrein {
+  padding: 13px 22px 12px;
+  color: var(--blanc);
+  background: none;
+  border: 1px solid var(--acier);
+  font-size: var(--fs-texte);
+  font-variation-settings: 'wdth' 118;
+  font-weight: 420;
+  letter-spacing: 0.01em;
+  clip-path: polygon(0 0, calc(100% - var(--chanfrein)) 0, 100% var(--chanfrein), 100% 100%, 0 100%);
+  transition: border-color 0.18s var(--traine), color 0.18s var(--traine);
+}
+.bouton-chanfrein:hover { border-color: var(--blanc); }
+.bouton-chanfrein.discret { color: var(--acier); border-color: var(--graphite); }
+.bouton-chanfrein.discret:hover { color: var(--alu); border-color: var(--acier); }
+
+/* --- Curseur réticule ----------------------------------------------------- */
+
+#curseur {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+}
+#curseur svg { width: 100%; height: 100%; overflow: visible; stroke: var(--blanc); stroke-width: 1; fill: none; }
+#curseur circle { fill: var(--blanc); stroke: none; }
+#curseur .coins { opacity: 0; transform: scale(0.6); transition: opacity 0.2s var(--traine), transform 0.24s var(--traine); }
+#curseur .croix { transition: opacity 0.15s var(--traine), transform 0.24s var(--traine); }
+#curseur.sur-bouton .coins { opacity: 1; transform: scale(1); }
+#curseur.sur-bouton .croix { opacity: 0; transform: scale(0.4); }
+#curseur-num { position: absolute; left: 28px; top: -4px; font-family: var(--mono); font-size: var(--fs-hud); color: var(--blanc); }
+
+@media (prefers-reduced-motion: reduce) {
+  .indication-trait { animation: none; transform: scaleY(1); }
+  #btn-film { display: none; }
+}
