@@ -125,7 +125,7 @@ button, a { cursor: none; font: inherit; }
   color: var(--blanc);
 }
 
-#t-suite { inset: 0; display: grid; place-items: center; }
+
 
 /* Acte II ----------------------------------------------------------------- */
 
@@ -558,4 +558,142 @@ sup { font-size: 0.6em; line-height: 0; vertical-align: 0.6em; }
 @media (prefers-reduced-motion: reduce) {
   .indication-trait { animation: none; transform: scaleY(1); }
   #btn-film { display: none; }
+}
+
+/* Acte IV ----------------------------------------------------------------- */
+
+#mhz { font-variant-numeric: tabular-nums; }
+
+#passes {
+  right: calc(var(--marge) * 2.2);
+  top: calc(var(--marge) * 3.2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: calc(var(--fs-hud) * 1.4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#passes li { display: flex; align-items: center; gap: 14px; height: 2.4em; color: var(--acier); transition: color 0.25s var(--traine); }
+#passes li .num { opacity: 0.7; }
+#passes li::before { content: ''; display: block; width: 0; height: 1px; background: var(--degrade-msi); transition: width 0.3s var(--masse); }
+#passes li.faite { color: var(--alu); opacity: 0.55; }
+#passes li.active { color: var(--blanc); }
+#passes li.active::before { width: 28px; }
+
+/* Les six images : une calculée, cinq générées. */
+.images { display: flex; gap: 8px; }
+.image-cadre {
+  position: relative;
+  width: calc(5.4 * var(--u));
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--graphite);
+  display: grid;
+  place-items: end start;
+  padding: 5px 6px;
+  font-family: var(--mono);
+  font-size: calc(var(--fs-hud) * 0.8);
+  letter-spacing: 0.06em;
+  color: var(--acier);
+  transition: border-color 0.12s linear, color 0.12s linear;
+}
+.image-cadre.calculee { border-color: var(--alu); color: var(--blanc); }
+.image-cadre.allumee { border-color: var(--msi-violet); color: var(--blanc); }
+
+/* Générique de fin : le bloc défile de bas en haut. */
+#t-fiche { inset: 0; overflow: hidden; }
+.generique {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: min(calc(70 * var(--u)), 86vw);
+  transform: translate(-50%, 100vh);
+  text-align: center;
+  will-change: transform;
+}
+.titre-fiche { margin-bottom: 1.4em; }
+.fiche { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: calc(var(--fs-hud) * 1.5); font-variant-numeric: tabular-nums; }
+.fiche th, .fiche td { padding: 1.05em 0.6em; border-bottom: 1px solid var(--graphite); font-weight: 400; }
+.fiche thead th {
+  font-family: var(--grotesque);
+  font-size: calc(var(--fs-texte) * 1.05);
+  font-variation-settings: 'wdth' 118;
+  color: var(--alu);
+  vertical-align: bottom;
+  line-height: 1.15;
+}
+.fiche thead th span { font-size: 0.8em; color: var(--acier); }
+.fiche tbody th { text-align: left; color: var(--acier); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.85em; }
+.fiche tbody th small { display: block; margin-top: 0.3em; letter-spacing: 0.06em; }
+.fiche td { color: var(--alu); text-align: right; white-space: nowrap; }
+.fiche td small { margin-left: 0.6em; font-size: 0.75em; color: var(--acier); letter-spacing: 0.04em; }
+.fiche .vedette { color: var(--blanc); }
+.fiche thead .vedette { color: var(--blanc); }
+.fiche .barre {
+  display: block;
+  height: 1px;
+  margin: 0 0 0.7em auto;
+  width: calc(var(--p) * 100%);
+  background: var(--acier);
+}
+.fiche .vedette .barre { background: var(--degrade-msi); }
+.notes {
+  max-width: 70ch;
+  margin: 2.4em auto 0;
+  font-family: var(--mono);
+  font-size: var(--fs-hud);
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--acier);
+  text-align: left;
+}
+
+/* Footer. */
+#t-fin {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1em;
+  pointer-events: auto;
+}
+.fin-ligne { margin: 0; font-family: var(--mono); font-size: calc(var(--fs-hud) * 1.5); letter-spacing: 0.04em; color: var(--alu); text-align: center; }
+.fin-ligne:first-child { color: var(--blanc); }
+
+/* Crédits complets. */
+#credits {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  overflow-y: auto;
+  background: var(--noir);
+  padding: calc(var(--marge) * 3) calc(var(--marge) * 2.2);
+  color: var(--alu);
+  font-size: calc(var(--fs-texte) * 0.85);
+  line-height: 1.55;
+}
+#credits[hidden] { display: none; }
+#btn-fermer-credits { position: fixed; right: var(--marge); top: var(--marge); }
+#credits-contenu { max-width: 1100px; }
+#credits-contenu h1, #credits-contenu h2 { font-weight: 300; font-variation-settings: 'wdth' 125; color: var(--blanc); }
+#credits-contenu h1 { font-size: var(--fs-titre); margin: 0 0 0.5em; }
+#credits-contenu h2 { font-size: var(--fs-lead); margin: 2em 0 0.6em; }
+#credits-contenu table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+#credits-contenu th, #credits-contenu td { text-align: left; vertical-align: top; padding: 0.6em 0.8em 0.6em 0; border-bottom: 1px solid var(--graphite); }
+#credits-contenu th { font-family: var(--mono); font-size: 0.85em; font-weight: 400; color: var(--acier); text-transform: uppercase; letter-spacing: 0.06em; }
+#credits-contenu code { font-family: var(--mono); font-size: 0.9em; color: var(--blanc); }
+#credits-contenu a { color: var(--alu); text-decoration: underline; text-decoration-color: var(--graphite); text-underline-offset: 3px; word-break: break-all; }
+#credits-contenu a:hover { color: var(--blanc); }
+
+/* Extinction : par-dessus tout, même le curseur. */
+#extinction {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 30;
+  pointer-events: none;
+  image-rendering: pixelated;
 }

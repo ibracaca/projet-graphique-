@@ -41,21 +41,50 @@ const Composition = {
     uAberration: { value: 0 },
     uScan: { value: 0 },
     uHauteur: { value: 1080 },
+    uLargeur: { value: 1920 },
+    uBrut: { value: 0 }, // image du ray tracing avant DLSS : bruitée, basse définition
+    uDlss: { value: 0 }, // part des tuiles déjà passées par DLSS
+    uTuile: { value: 56 },
+    uTempsC: { value: 0 },
   },
   vertexShader: VERTEX_PLEIN_ECRAN,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse, tBloom, tThermique;
-    uniform float uBloom, uAberration, uScan, uHauteur;
+    uniform float uBloom, uAberration, uScan, uHauteur, uLargeur, uBrut, uDlss, uTuile, uTempsC;
     varying vec2 vUv;
+    float hashT(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
     void main() {
-      vec2 d = vUv - 0.5;
+      vec2 res = vec2(uLargeur, uHauteur);
+      vec2 uvC = vUv;
+      float brut = 0.0;
+      float liseret = 0.0;
+      if (uBrut > 0.0) {
+        // avant DLSS, chaque tuile est rendue en basse définition et bruitée ;
+        // DLSS les reprend une à une (ordre tiré au hasard, comme les autres passes)
+        vec2 px = vUv * res;
+        float h = hashT(floor(px / uTuile));
+        brut = uBrut * step(uDlss, h);
+        float age = uDlss - h;
+        liseret = step(0.0, age) * step(age, 0.05) * step(0.001, uDlss) * step(uDlss, 0.999);
+        if (brut > 0.0) uvC = (floor(px / 4.0) * 4.0 + 2.0) / res;
+      }
+      vec2 d = uvC - 0.5;
       float bord = smoothstep(0.25, 0.75, length(d));
       vec2 decal = d * uAberration * bord * 0.02;
       vec3 c;
-      c.r = texture2D(tDiffuse, vUv - decal).r;
-      c.g = texture2D(tDiffuse, vUv).g;
-      c.b = texture2D(tDiffuse, vUv + decal).b;
+      c.r = texture2D(tDiffuse, uvC - decal).r;
+      c.g = texture2D(tDiffuse, uvC).g;
+      c.b = texture2D(tDiffuse, uvC + decal).b;
       vec3 bloom = texture2D(tBloom, vUv).rgb * uBloom;
+      if (brut > 0.0) {
+        // bruit de Monte-Carlo : des pixels trop clairs ou trop sombres, qui changent
+        float n = hashT(floor(vUv * res) + fract(uTempsC * 13.7) * 91.0);
+        c *= mix(1.0, 0.35 + 1.5 * n * n, 0.75 * brut);
+      }
+      if (liseret > 0.0) {
+        vec2 q = mod(vUv * res, uTuile);
+        c += vec3(0.5) * step(min(min(q.x, q.y), min(uTuile - q.x, uTuile - q.y)), 1.0);
+      }
       if (uScan > 0.0) {
         float limite = 1.0 - uScan;
         float m = step(limite, vUv.y);
@@ -84,6 +113,9 @@ const Finition = {
     uGriffure: { value: 0 },
     uRatio: { value: 16 / 9 },
     uNoir: { value: 0 },
+    uNoirTuiles: { value: 0 }, // fondu au noir par tuiles (sortie de la carte vers la ville)
+    uRes: { value: new Vector2(1920, 1080) },
+    uTuileF: { value: 56 },
     uC0: { value: DEGRADE_MSI[0] },
     uC1: { value: DEGRADE_MSI[1] },
     uC2: { value: DEGRADE_MSI[2] },
@@ -92,7 +124,8 @@ const Finition = {
   vertexShader: VERTEX_PLEIN_ECRAN,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse;
-    uniform float uTemps, uGrain, uVignette, uGriffure, uRatio, uNoir;
+    uniform float uTemps, uGrain, uVignette, uGriffure, uRatio, uNoir, uNoirTuiles, uTuileF;
+    uniform vec2 uRes;
     uniform vec3 uC0, uC1, uC2, uC3;
     varying vec2 vUv;
 
@@ -142,6 +175,10 @@ const Finition = {
 
       // fondu au noir (transitions calmes, extinction)
       c *= 1.0 - uNoir;
+      if (uNoirTuiles > 0.0) {
+        float h = hash(floor(vUv * uRes / uTuileF) * 0.731 + 0.17);
+        c *= step(uNoirTuiles, h);
+      }
 
       // griffures : par-dessus le noir, elles ouvrent l'acte suivant (raccord)
       if (uGriffure > 0.0) {
@@ -205,6 +242,7 @@ export function creerRendu(canvas) {
   const thermique = creerThermique();
   passeComposition.uniforms.tThermique.value = thermique.cible.texture;
   let horsThermique = [];
+  let horsBloom = [];
 
   // Matériaux masqués pendant la passe des néons (ils n'écrivent que leur profondeur).
   // Objets cachés pendant la passe thermique : filaires, particules, lignes,
@@ -213,8 +251,10 @@ export function creerRendu(canvas) {
   function recenserMateriaux() {
     const set = new Set();
     horsThermique = [];
+    horsBloom = [];
     scene.traverse((o) => {
       if (o.isLine || o.isPoints || o.userData.horsThermique || o.userData.neon) horsThermique.push(o);
+      if (o.userData.horsBloom) horsBloom.push(o);
       if (!(o.isMesh || o.isLine || o.isPoints) || o.userData.neon) return;
       const ms = Array.isArray(o.material) ? o.material : [o.material];
       ms.forEach((m) => set.add(m));
@@ -266,6 +306,11 @@ export function creerRendu(canvas) {
     passeFinition.uniforms.uRatio.value = l / h;
     thermique.cible.setSize(Math.round(l * dpr()), Math.round(h * dpr()));
     passeComposition.uniforms.uHauteur.value = h * dpr();
+    passeComposition.uniforms.uLargeur.value = l * dpr();
+    passeComposition.uniforms.uTuile.value = 56 * dpr();
+    passeFinition.uniforms.uRes.value.set(l * dpr(), h * dpr());
+    passeFinition.uniforms.uTuileF.value = 56 * dpr();
+    qualite.auRedimensionnement?.();
     camera.aspect = l / h;
     camera.updateProjectionMatrix();
   }
@@ -302,11 +347,16 @@ export function creerRendu(canvas) {
   function rendre(temps, dt) {
     mesurer(dt);
     passeFinition.uniforms.uTemps.value = temps;
+    passeComposition.uniforms.uTempsC.value = temps;
     renderer.shadowMap.needsUpdate = true;
     // passe des néons
+    // (les reflets ne servent pas à la passe des néons : on économise leur rendu)
+    const vis = horsBloom.map((o) => o.visible);
+    horsBloom.forEach((o) => (o.visible = false));
     for (const m of masques) m.colorWrite = false;
     composerBloom.render();
     for (const m of masques) m.colorWrite = true;
+    horsBloom.forEach((o, i) => (o.visible = vis[i]));
     renderer.shadowMap.needsUpdate = false;
     if (passeComposition.uniforms.uScan.value > 0) rendreThermique(temps);
     composer.render();

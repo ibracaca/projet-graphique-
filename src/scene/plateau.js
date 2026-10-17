@@ -13,11 +13,13 @@ import {
 } from 'three';
 import { construireCarte } from '../carte/carte.js';
 import { COULEURS } from '../couleurs.js';
+import { creerAretes } from './aretes.js';
 import { creerCourant } from './courant.js';
 import { creerImage } from './image.js';
 import { creerMemoire } from './memoire.js';
 import { creerMicroscope } from './microscope.js';
 import { creerSouffle } from './souffle.js';
+import { creerVille } from './ville.js';
 
 // ---------------------------------------------------------------------------
 // Le plateau : la carte, ses lumières, la poussière. Tout ce qui bouge est piloté
@@ -69,6 +71,19 @@ export const ETAT = {
   donnees: 0, // paquets de données
   image: 0, // progression de l'image (beat 10)
   imageVisible: 0,
+  // acte IV
+  aretes: 0, // front du dégradé sur les arêtes (beat 11)
+  aretesIntensite: 1,
+  tourne: 0, // rotation de la carte sur elle-même (radians)
+  noirTuiles: 0, // fondu au noir par tuiles
+  ville: 0, // 1 : la ville remplace la carte
+  etape: -1, // passe de rendu de la ville (−1 à 3, voir ville.js)
+  pluie: 0,
+  lune: 0,
+  neonsVille: 0,
+  brut: 0, // ray tracing bruité avant DLSS
+  dlss: 0, // part des tuiles passées par DLSS
+  extinction: 0, // extinction finale, pixel par pixel (0 à 1)
 };
 
 const NB_POUSSIERE = 2400;
@@ -199,6 +214,9 @@ export function creerPlateau(rendu) {
   const microscope = creerMicroscope(scene);
   const memoire = creerMemoire(carte.piece('pcb').groupe);
   const image = creerImage(carte.piece('pcb').groupe);
+  const aretes = creerAretes(carte);
+  const ville = creerVille(scene, rendu.renderer);
+  rendu.qualite.auRedimensionnement = ville.redimensionner;
 
   // Lumière rasante d'appoint sur le PCB pendant le beat 3 (vient du bord haut).
   const appoint = new DirectionalLight(0xffffff, 0);
@@ -303,9 +321,17 @@ export function creerPlateau(rendu) {
     // Acte III : microscope, mémoire, image. Quand le microscope couvre tout
     // l'écran, la carte n'est plus dessinée.
     microscope.maj(dt, E, son, camera);
-    carte.racine.visible = E.micro < 0.999;
+    carte.racine.visible = E.micro < 0.999 && E.ville < 0.5;
+    carte.racine.rotation.y = E.tourne;
     memoire.maj(dt, E);
     image.maj(dt, E);
+
+    // Acte IV : arêtes de lumière, ville, DLSS, fondu par tuiles.
+    aretes.maj(dt, E);
+    ville.maj(dt, E);
+    rendu.uniforms.uBrut.value = E.brut;
+    rendu.uniforms.uDlss.value = E.dlss > 0.998 ? 1 : E.dlss;
+    rendu.uniforms.uNoirTuiles.value = E.noirTuiles;
 
     const u = rendu.uniforms;
     u.uGrain.value = E.grain;

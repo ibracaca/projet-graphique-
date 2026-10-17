@@ -18,8 +18,8 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | 2. Carte 3D construite par code | Validée |
 | 3. Colonne vertébrale (scène, scroll, son), puis acte I | Validé |
 | 4. Acte II | Validé |
-| 5. Acte III | En validation |
-| 6. Acte IV | À venir |
+| 5. Acte III | Validé |
+| 6. Acte IV | En validation |
 
 ## Ce que fait le site aujourd'hui
 
@@ -27,7 +27,8 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 2. **Acte I** : un faisceau rasant révèle la carte par fragments, son nom se décode, puis elle se démonte en vue éclatée filaire, avec les onze pièces annotées.
 3. **Griffure** : trois entailles de lumière ferment l'acte I.
 4. **Acte II** : le courant entre par le connecteur 16 broches et coule sur le PCB jusqu'à la puce (« 575 W » s'élargit avec lui) ; le silence (tout s'arrête, la musique baisse 2 secondes) ; le souffle (les trois ventilateurs démarrent l'un après l'autre, l'air traverse la carte) ; la vision thermique (une ligne de balayage convertit l'image en vue en coupe infrarouge, la puce chauffe puis les Core Pipes emportent la chaleur). Une griffure ferme l'acte.
-5. **Acte III** : puissances de dix (la caméra plonge de la carte jusqu'aux transistors, une règle graduée affiche l'échelle en direct) ; la puce (les 170 SM du GB202 s'allument du centre vers les bords, des vagues de lumière tombent sur les temps de la musique, le compteur monte jusqu'à 21 760 cœurs CUDA) ; la mémoire (les 512 pistes du bus se dessinent entre les 16 modules et la puce, des paquets de données y circulent) ; 4,17 ms (une image traverse la carte et se calcule en cinq étapes, le chronomètre est le titre). Une griffure ferme l'acte ; l'acte IV n'est pas encore construit.
+5. **Acte III** : puissances de dix (la caméra plonge de la carte jusqu'aux transistors, une règle graduée affiche l'échelle en direct) ; la puce (les 170 SM du GB202 s'allument du centre vers les bords, des vagues de lumière tombent sur les temps de la musique, le compteur monte jusqu'à 21 760 cœurs CUDA) ; la mémoire (les 512 pistes du bus se dessinent entre les 16 modules et la puce, des paquets de données y circulent) ; 4,17 ms (une image traverse la carte et se calcule en cinq étapes, le chronomètre est le titre). Une griffure ferme l'acte.
+6. **Acte IV** : la reconstruction (les pièces reviennent en place, la matière se remplit, le studio s'allume, puis le dégradé MSI coule le long des arêtes ; « 2 482 MHz » s'élargit) ; le rendu qui se calcule (une ville nocturne sous la pluie, calculée tuile par tuile : fil de fer, polygones, ombres, ray tracing, DLSS 4.5) ; la fiche technique, qui monte comme un générique de fin ; le footer, avec le lien vers toutes les sources, puis tout s'éteint pixel par pixel.
 
 Pendant l'acte I, le son est d'abord étouffé, comme entendu à travers le boîtier, puis il s'ouvre à mesure qu'on descend.
 
@@ -57,7 +58,10 @@ Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le sit
 | Les lignes du démarrage | `src/recit/demarrage.js` (liste `LIGNES`) |
 | Les noms des pièces de la vue éclatée | `src/carte/carte.js` (liste `PIECES`) |
 | La cue sheet : ordre des beats, durée de scroll, temps musical | `src/recit/cue.js` (liste `BEATS`) |
-| La chorégraphie des actes | `src/recit/acte1.js`, `acte2.js`, `acte3.js` (positions en vh de scroll) |
+| La chorégraphie des actes | `src/recit/acte1.js` à `acte4.js` (positions en vh de scroll) |
+| La ville, le dégradé sur les arêtes | `src/scene/ville.js`, `src/scene/aretes.js` |
+| Le tableau de la fiche technique, le footer | `index.html` (sections `t-fiche` et `t-fin`) |
+| Les crédits affichés sur le site | `CREDITS.md` (le site le lit directement) |
 | Le microscope, les pistes mémoire, l'image de 4,17 ms | `src/scene/microscope.js`, `src/scene/memoire.js`, `src/scene/image.js` |
 | La règle d'échelle, le compteur CUDA, le chronomètre | `src/hud/instruments.js` |
 | Le courant, le flux d'air, la vision thermique | `src/scene/courant.js`, `src/scene/souffle.js`, `src/scene/thermique.js` |

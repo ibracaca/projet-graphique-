@@ -27,14 +27,14 @@ export const BEATS = [
   { id: 'puce', num: '08', label: '[ 08 / GB202 ]', acte: 2, temps: temps(183), vh: 300, construit: true },
   { id: 'memoire', num: '09', label: '[ 09 / VRAM ]', acte: 2, temps: temps(208), vh: 250, construit: true },
   { id: 'image', num: '10', label: '[ 10 / FRAME TIME ]', acte: 2, temps: temps(219), vh: 250, construit: true },
-  { id: 'reveil', num: '11', label: '[ SYSTEM READY ]', acte: 3, temps: temps(231), vh: 600 },
-  { id: 'rendu', num: '12', label: '[ 12 / RENDER ]', acte: 3, temps: temps(264), vh: 600 },
-  { id: 'fiche', num: '13', label: '[ 13 / SPÉCIFICATIONS ]', acte: 3, temps: temps(297), vh: 300 },
-  { id: 'fin', num: '14', label: '', acte: 3, temps: temps(341), vh: 200 },
+  { id: 'reveil', num: '11', label: '[ SYSTEM READY ]', acte: 3, temps: temps(231), vh: 600, construit: true },
+  { id: 'rendu', num: '12', label: '[ 12 / RENDER ]', acte: 3, temps: temps(264), vh: 600, construit: true },
+  { id: 'fiche', num: '13', label: '[ 13 / SPÉCIFICATIONS ]', acte: 3, temps: temps(297), vh: 300, construit: true },
+  { id: 'fin', num: '14', label: '', acte: 3, temps: temps(341), vh: 200, construit: true },
 ];
 
-// Fin du dernier beat construit : la piste s'arrête là (plus une respiration).
-export const QUEUE_VH = 140;
+// Fin du dernier beat construit : la piste s'arrête là (plus un court silence noir).
+export const QUEUE_VH = 40;
 
 // Positions (en vh de piste) de chaque beat construit, et longueur totale.
 export function decoupage() {

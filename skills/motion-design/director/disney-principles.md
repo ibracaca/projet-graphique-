@@ -1,4 +1,4 @@
-# Disney's 12 Principles — UI Adapted
+# Disney's 12 Principles: UI Adapted
 
 ## 1. Squash and Stretch
 

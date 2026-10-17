@@ -84,12 +84,12 @@ Primary property carries meaning; secondary adds polish. Two properties is the s
 
 | Property | Performance |
 |----------|-------------|
-| transform (translate, scale, rotate) | Excellent — GPU-accelerated |
-| opacity | Excellent — GPU-accelerated |
-| color / background-color | Good — triggers paint |
-| clip-path | Good — GPU on modern browsers |
-| width / height | Poor — triggers layout |
-| margin / padding | Poor — triggers layout |
-| box-shadow | Poor — expensive paint |
+| transform (translate, scale, rotate) | Excellent: GPU-accelerated |
+| opacity | Excellent: GPU-accelerated |
+| color / background-color | Good: triggers paint |
+| clip-path | Good: GPU on modern browsers |
+| width / height | Poor: triggers layout |
+| margin / padding | Poor: triggers layout |
+| box-shadow | Poor: expensive paint |
 
 **Rule**: Prefer transform + opacity for all motion.

@@ -21,7 +21,7 @@ Pulsing >±5% scale becomes attention-demanding.
 - Y position ±5-15px, sine ease-in-out, 3000-5000ms/cycle
 - Optional: slight rotation ±2-3°, offset 30% of position cycle
 
-**Layered floating** (multiple elements — different durations prevent sync):
+**Layered floating** (multiple elements: different durations prevent sync):
 - Element 1: 4000ms, ±10px
 - Element 2: 5500ms, ±8px (offset 30%)
 - Element 3: 3500ms, ±12px (offset 60%)

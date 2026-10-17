@@ -75,9 +75,57 @@
       <p class="texte-beat">À 240 images par seconde, chaque image dispose de 4,17 ms.</p>
     </article>
     <ol class="beat" id="etapes"></ol>
-    <article class="beat" id="t-suite">
-      <p class="hud-texte">[ ACTE IV : EN CONSTRUCTION ]</p>
+    <article class="beat bas-gauche" id="t-reveil">
+      <p class="display" id="titre-mhz" aria-label="2 482 MHz"><span id="mhz">0</span> MHz.</p>
+      <p class="texte-beat">Fréquence boost, modes Gaming et Silent. 2 497 MHz en mode Extreme Performance.</p>
     </article>
+    <ol class="beat" id="passes">
+      <li><span class="num">01</span><span>Fil de fer</span></li>
+      <li><span class="num">02</span><span>Polygones</span></li>
+      <li><span class="num">03</span><span>Ombres</span></li>
+      <li><span class="num">04</span><span>Ray tracing</span></li>
+      <li><span class="num">05</span><span>DLSS 4.5, génération multi-images</span></li>
+    </ol>
+    <article class="beat bas-gauche" id="t-rendu">
+      <div class="images" aria-hidden="true">
+        <span class="image-cadre calculee"><span>CALCULÉE</span></span>
+        <span class="image-cadre"><span>GÉNÉRÉE</span></span>
+        <span class="image-cadre"><span>GÉNÉRÉE</span></span>
+        <span class="image-cadre"><span>GÉNÉRÉE</span></span>
+        <span class="image-cadre"><span>GÉNÉRÉE</span></span>
+        <span class="image-cadre"><span>GÉNÉRÉE</span></span>
+      </div>
+      <p class="texte-beat">Pour une image calculée, jusqu'à cinq images générées.</p>
+    </article>
+    <section class="beat" id="t-fiche" aria-label="Fiche technique">
+      <div class="generique">
+        <h2 class="titre-beat titre-fiche">Fiche technique.</h2>
+        <table class="fiche">
+          <thead>
+            <tr><th></th><th class="vedette">RTX 5090<br><span>Gaming Trio</span></th><th>RTX 5080</th><th>RTX 4090</th><th>RX 7900 XTX</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Unités de calcul</th><td class="vedette">21 760<small>CUDA</small></td><td>10 752<small>CUDA</small></td><td>16 384<small>CUDA</small></td><td>6 144<small>flux</small></td></tr>
+            <tr><th>Mémoire</th><td class="vedette">32 Go<small>GDDR7</small></td><td>16 Go<small>GDDR7</small></td><td>24 Go<small>GDDR6X</small></td><td>24 Go<small>GDDR6</small></td></tr>
+            <tr><th>Bus</th><td class="vedette">512 bits</td><td>256 bits</td><td>384 bits</td><td>384 bits</td></tr>
+            <tr><th>Bande passante</th><td class="vedette">1 792 Go/s</td><td>960 Go/s</td><td>1 008 Go/s</td><td>960 Go/s</td></tr>
+            <tr><th>Consommation</th><td class="vedette">575 W</td><td>360 W</td><td>450 W</td><td>355 W</td></tr>
+            <tr><th>Boost</th><td class="vedette">2 482 MHz</td><td>2 617 MHz</td><td>2 520 MHz</td><td>2 500 MHz</td></tr>
+            <tr class="perf"><th>Performances relatives<small>4K</small></th>
+              <td class="vedette"><span class="barre" style="--p: 1"></span>100 %</td>
+              <td><span class="barre" style="--p: 0.66"></span>66 %</td>
+              <td><span class="barre" style="--p: 0.76"></span>76 %</td>
+              <td><span class="barre" style="--p: 0.58"></span>58 %</td></tr>
+          </tbody>
+        </table>
+        <p class="notes">Performances relatives en 4K : base de données GPU de TechPowerUp, consultée le 17 octobre 2026. Elle donne les cartes de référence ; la Gaming Trio n'y figure pas. Boost : Gaming Trio en mode Gaming, autres cartes à leur fréquence de référence. Les cœurs CUDA (NVIDIA) et les processeurs de flux (AMD) ne sont pas des unités comparables.</p>
+      </div>
+    </section>
+    <footer class="beat" id="t-fin">
+      <p class="fin-ligne">Concept non officiel, sans lien avec MSI ni NVIDIA.</p>
+      <p class="fin-ligne">Musique : Grimes, « Genesis ».</p>
+      <p class="fin-ligne"><button id="btn-credits" class="bouton-hud" data-curseur="bouton">[ RESSOURCES ET SOURCES ]</button></p>
+    </footer>
   </div>
 
   <!-- Annotations de la vue éclatée : lignes de cote et étiquettes. -->
@@ -112,6 +160,15 @@
       <button id="btn-sans-son" class="bouton-chanfrein discret" data-curseur="bouton">Sans son</button>
     </div>
   </section>
+
+  <!-- Crédits complets (CREDITS.md), ouverts depuis le footer. -->
+  <section id="credits" aria-label="Ressources et sources" hidden data-lenis-prevent>
+    <button id="btn-fermer-credits" class="bouton-hud" data-curseur="bouton">[ FERMER ]</button>
+    <div id="credits-contenu"></div>
+  </section>
+
+  <!-- Extinction finale, pixel par pixel. -->
+  <canvas id="extinction" aria-hidden="true"></canvas>
 
   <div id="curseur" aria-hidden="true">
     <svg viewBox="-20 -20 40 40">

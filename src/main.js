@@ -14,6 +14,8 @@ import { creerHUD } from './hud/hud.js';
 import { construireActe1 } from './recit/acte1.js';
 import { construireActe2 } from './recit/acte2.js';
 import { construireActe3 } from './recit/acte3.js';
+import { construireActe4 } from './recit/acte4.js';
+import { creerFin } from './recit/fin.js';
 import { creerInstrumentsActe3 } from './hud/instruments.js';
 import { creerAnnotations } from './recit/annotations.js';
 import { decoupage, scrollPourTemps } from './recit/cue.js';
@@ -82,11 +84,11 @@ const contexte = { tl, E: ETAT, carte, annotations, positions, son, reduit, sens
 construireActe1(contexte);
 construireActe2(contexte);
 construireActe3(contexte);
-// La suite n'est pas encore construite.
-tl.set('#t-suite', { visibility: 'visible' }, finConstruit + 10).fromTo('#t-suite', { opacity: 0 }, { opacity: 1, duration: 40, ease: 'traine' }, finConstruit + 10);
+const acte4 = construireActe4(contexte);
 tl.set({}, {}, total); // la durée de la timeline = la longueur de la piste, en vh
 
 const lenis = new Lenis({ lerp: reduit ? 1 : 0.085, wheelMultiplier: 0.9 });
+const fin = creerFin({ lenis });
 lenis.stop();
 lenis.on('scroll', ScrollTrigger.update);
 declencheur = ScrollTrigger.create({
@@ -181,6 +183,8 @@ gsap.ticker.add((temps, deltaMs) => {
     regimeLigne.style.setProperty('--wght', String(Math.round(200 + regime * 5)));
   }
   instruments.maj(ETAT);
+  acte4.maj(temps);
+  fin.maj(ETAT);
 
   rendu.rendre(temps, dt);
 });

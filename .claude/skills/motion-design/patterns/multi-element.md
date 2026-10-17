@@ -21,12 +21,12 @@
 
 ### Dashboard Widgets
 ```
-0ms   — Skeletons visible
-100ms — Hero metric (250ms, ease-out)
-200ms — Widgets begin (200ms each, 60ms stagger)
-350ms — Hero complete, chart draws (300ms)
-500ms — All landed
-650ms — Ambient pulse begins
+0ms  : Skeletons visible
+100ms: Hero metric (250ms, ease-out)
+200ms: Widgets begin (200ms each, 60ms stagger)
+350ms: Hero complete, chart draws (300ms)
+500ms: All landed
+650ms: Ambient pulse begins
 ```
 
 ## Coordinated Sequences
