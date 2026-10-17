@@ -233,3 +233,120 @@ def exporter(nom_fichier):
         export_lights=False,
     )
     print('export :', chemin, round(os.path.getsize(chemin) / 1024), 'Ko')
+
+
+def prisme(nom, points, z0, z1, mat=None, parent=None):
+    """Contour 2D (plan XY) extrudé entre z0 et z1."""
+    bm = bmesh.new()
+    bas = [bm.verts.new((x, y, z0)) for x, y in points]
+    face = bm.faces.new(bas)
+    res = bmesh.ops.extrude_face_region(bm, geom=[face])
+    haut = [e for e in res['geom'] if isinstance(e, bmesh.types.BMVert)]
+    bmesh.ops.translate(bm, verts=haut, vec=(0, 0, z1 - z0))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(nom)
+    bm.to_mesh(me)
+    bm.free()
+    o = lier(bpy.data.objects.new(nom, me), parent)
+    if mat:
+        me.materials.append(mat)
+    return o
+
+
+def cylindre(nom, x, y, rayon, z0, z1, segments=160):
+    """Outil de découpe : cylindre d'axe Z."""
+    s = []
+    for z in (z0, z1):
+        s += [(x + rayon * math.cos(2 * math.pi * k / segments), y + rayon * math.sin(2 * math.pi * k / segments), z) for k in range(segments)]
+    f = [tuple(range(segments))[::-1], tuple(range(segments, 2 * segments))]
+    f += [(k, (k + 1) % segments, segments + (k + 1) % segments, segments + k) for k in range(segments)]
+    me = bpy.data.meshes.new(nom)
+    me.from_pydata(s, [], f)
+    return lier(bpy.data.objects.new(nom, me))
+
+
+def booleen(o, outils, operation='DIFFERENCE', supprimer=True):
+    """Découpe (ou union, intersection) exacte, appliquée tout de suite."""
+    for t in outils:
+        m = o.modifiers.new('bool', 'BOOLEAN')
+        m.operation = operation
+        m.solver = 'EXACT'
+        m.object = t
+        appliquer(o)
+    if supprimer:
+        for t in outils:
+            if t.name in bpy.data.objects:
+                bpy.data.objects.remove(t, do_unlink=True)
+    return o
+
+
+def transformer(o, matrice):
+    o.data.transform(matrice)
+    o.data.update()
+
+
+def pivoter_autour(o, axe, degres, centre):
+    """Rotation des sommets autour d'un axe ('X', 'Y', 'Z') passant par `centre`."""
+    m = Matrix.Translation(centre) @ Matrix.Rotation(math.radians(degres), 4, axe) @ Matrix.Translation([-c for c in centre])
+    transformer(o, m)
+
+
+def aretes_vives(objets, angle=30, ignorer_courtes=0.0):
+    """Arêtes de construction : bords libres et arêtes dont l'angle entre faces
+    dépasse `angle`. Renvoie (sommets, arêtes) en coordonnées monde, à prendre
+    AVANT le biseau (le dessin reste celui d'un plan d'ingénieur)."""
+    sommets, aretes = [], []
+    seuil = math.radians(angle)
+    for o in objets:
+        mw = o.matrix_world
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        for e in bm.edges:
+            lf = e.link_faces
+            vive = len(lf) != 2 or e.calc_face_angle(0) > seuil
+            if not vive or e.calc_length() < ignorer_courtes:
+                continue
+            i = len(sommets)
+            sommets += [tuple(mw @ e.verts[0].co), tuple(mw @ e.verts[1].co)]
+            aretes.append((i, i + 1))
+        bm.free()
+    return sommets, aretes
+
+
+def decouper(sujet, fenetre):
+    """Découpe d'un polygone 2D par un polygone convexe (Sutherland-Hodgman),
+    comme `decouper` dans src/carte/outils.js."""
+    sortie = list(sujet)
+    n = len(fenetre)
+    for i in range(n):
+        ax, ay = fenetre[i]
+        bx, by = fenetre[(i + 1) % n]
+
+        def dedans(p):
+            return (bx - ax) * (p[1] - ay) - (by - ay) * (p[0] - ax) >= 0
+
+        def inter(p, q):
+            a1, b1 = by - ay, ax - bx
+            c1 = a1 * ax + b1 * ay
+            a2, b2 = q[1] - p[1], p[0] - q[0]
+            c2 = a2 * p[0] + b2 * p[1]
+            d = a1 * b2 - a2 * b1
+            return ((b2 * c1 - b1 * c2) / d, (a1 * c2 - a2 * c1) / d)
+
+        entree, sortie = sortie, []
+        for j in range(len(entree)):
+            p, q = entree[j], entree[(j + 1) % len(entree)]
+            if dedans(q):
+                if not dedans(p):
+                    sortie.append(inter(p, q))
+                sortie.append(q)
+            elif dedans(p):
+                sortie.append(inter(p, q))
+        if not sortie:
+            break
+    return sortie
+
+
+def arc_points(cx, cz, r, a0, a1, n):
+    """Points (rayon, z) d'un arc de cercle dans le plan d'un profil, angles en degrés."""
+    return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)), cz + r * math.sin(math.radians(a0 + (a1 - a0) * i / n))) for i in range(n + 1)]

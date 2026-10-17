@@ -3,7 +3,7 @@ import { COQUE, VENTILATEURS } from './dimensions.js';
 import { boite, decouper, forme, prisme, trouRond } from './outils.js';
 
 const { xMin, yMin, yMax } = COQUE;
-const X_EMBOUT = 167; // début de l'embout droit (pan coupé)
+export const X_EMBOUT = 167; // début de l'embout droit (pan coupé)
 
 // Ouvertures des ventilateurs, utilisées pour découper les pièces posées en façade.
 export const TROUS_FACADE = VENTILATEURS.centres.map(([x, y]) => new Vector3(x, y, VENTILATEURS.rayonAnneau));

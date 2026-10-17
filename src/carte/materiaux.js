@@ -115,10 +115,11 @@ function brancherBalayage(materiau, balayage, trous, ao = false) {
 const srgb = (hex) => new Color(hex);
 
 const RECETTES = {
-  coqueClaire: { color: srgb('#4a4c51'), metalness: 0.5, roughness: 0.48, clearcoat: 0.15, clearcoatRoughness: 0.45 },
+  coqueClaire: { color: srgb('#3a3b40'), metalness: 0.4, roughness: 0.46, clearcoat: 0.12, clearcoatRoughness: 0.5 },
   anthracite: { color: srgb('#1a1b1e'), metalness: 0.35, roughness: 0.5, clearcoat: 0.08, clearcoatRoughness: 0.4 },
-  facette: { color: srgb('#5a5c61'), metalness: 0.55, roughness: 0.42 },
-  verreFume: { color: srgb('#060607'), metalness: 0, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03 },
+  facette: { color: srgb('#55575d'), metalness: 0.5, roughness: 0.4, clearcoat: 0.12, clearcoatRoughness: 0.45 },
+  // verre fumé : noir profond et très lisse, c'est le reflet du studio qui le fait lire
+  verreFume: { color: srgb('#020203'), metalness: 0, roughness: 0.03, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6 },
   plastiqueNoir: { color: srgb('#101114'), metalness: 0, roughness: 0.55, side: DoubleSide },
   // pales STORMFORCE : plastique noir satiné, longs reflets doux (fan.png)
   plastiquePales: { color: srgb('#0d0e10'), metalness: 0, roughness: 0.4, clearcoat: 0.18, clearcoatRoughness: 0.32 },

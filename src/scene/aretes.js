@@ -65,6 +65,20 @@ export function creerAretes(carte) {
   const lignes = [];
   for (const id of PIECES) {
     const piece = carte.piece(id);
+    // pièce venue de Blender : elle fournit ses propres arêtes, choisies à la main
+    const dediees = [];
+    piece.groupe.traverse((o) => o.userData.aretes && dediees.push(o));
+    if (dediees.length) {
+      for (const l of dediees) {
+        l.material = materiau;
+        l.userData.neon = true;
+        l.userData.horsThermique = true;
+        l.visible = false;
+        l.frustumCulled = false;
+        lignes.push(l);
+      }
+      continue;
+    }
     const maillages = [];
     piece.groupe.traverse((o) => o.isMesh && !o.userData.neon && maillages.push(o));
     for (const m of maillages) {

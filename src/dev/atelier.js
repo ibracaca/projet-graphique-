@@ -205,7 +205,10 @@ function appliquerVue() {
   // vues de détail : une seule pièce, voire un seul de ses éléments
   for (const p of carte.pieces) {
     p.groupe.visible = !vue.isoler || p.id === vue.isoler;
-    for (const enfant of p.groupe.children) enfant.visible = !vue.seul || p.id !== vue.isoler || enfant.name === vue.seul;
+    for (const enfant of p.groupe.children) {
+      if (enfant.userData.aretes) continue; // arêtes du beat 11 : jamais dans l'atelier
+      enfant.visible = !vue.seul || p.id !== vue.isoler || enfant.name === vue.seul;
+    }
   }
   const calage = placerPhoto();
   const { w, h } = rectVolet();

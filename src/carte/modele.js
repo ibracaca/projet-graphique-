@@ -32,11 +32,27 @@ export function adapterPiece(noeud, ctx) {
   const filaire = ctx.filaire;
   noeud.traverse((o) => {
     if (o.isLine) {
+      if (o.name.endsWith('__aretes')) {
+        // arêtes vives choisies pour le dégradé du beat 11 (src/scene/aretes.js)
+        o.userData.aretes = true;
+        o.visible = false;
+        return;
+      }
       o.material = filaire;
       o.userData.filaire = true;
       return;
     }
     if (!o.isMesh) return;
+    if (o.name.includes('__neon')) {
+      // zones lumineuses : réglage du dégradé passé par Blender (propriétés neon_*)
+      const u = o.userData;
+      o.material.dispose();
+      const reglage = u.neon_mode === 'angle' ? { mode: 'angle' } : { axe: u.neon_axe, min: u.neon_min, max: u.neon_max };
+      if (u.neon_intensite) reglage.intensite = u.neon_intensite;
+      o.material = ctx.neon(reglage);
+      o.userData.neon = true;
+      return;
+    }
     const g = o.geometry;
     // l'occlusion cuite arrive comme couleur de sommet : on la renomme pour que
     // Three.js ne la prenne pas pour une teinte
