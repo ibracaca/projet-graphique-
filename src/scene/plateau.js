@@ -193,9 +193,9 @@ function creerCone() {
   return cone;
 }
 
-export function creerPlateau(rendu) {
+export function creerPlateau(rendu, modele) {
   const { scene, camera } = rendu;
-  const carte = construireCarte();
+  const carte = construireCarte(modele);
   scene.add(carte.racine);
   carte.racine.traverse((o) => {
     if (o.isMesh && !o.userData.neon) {

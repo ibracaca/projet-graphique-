@@ -48,9 +48,23 @@ const GLSL_TROUS = /* glsl */ `
   }
 `;
 
-// Ajoute le balayage (et, en option, la découpe des ouvertures des ventilateurs)
-// à un matériau physique de Three.js.
-function brancherBalayage(materiau, balayage, trous) {
+// Occlusion ambiante cuite dans Blender, une valeur par sommet (attribut aoSommet).
+// Elle assombrit la lumière d'ambiance et les reflets du studio dans les creux,
+// et un peu la lumière directe (les creux restent lisibles sous le projecteur).
+const GLSL_AO = /* glsl */ `
+  float aoS = clamp(vAO, 0.0, 1.0);
+  reflectedLight.indirectDiffuse *= aoS;
+  #if defined( USE_CLEARCOAT )
+    clearcoatSpecularIndirect *= aoS;
+  #endif
+  reflectedLight.indirectSpecular *= computeSpecularOcclusion(saturate(dot(geometryNormal, geometryViewDir)), aoS, material.roughness);
+  reflectedLight.directDiffuse *= mix(1.0, aoS, 0.6);
+  reflectedLight.directSpecular *= mix(1.0, aoS, 0.35);
+`;
+
+// Ajoute le balayage (et, en option, la découpe des ouvertures des ventilateurs,
+// l'occlusion cuite) à un matériau physique de Three.js.
+function brancherBalayage(materiau, balayage, trous, ao = false) {
   materiau.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, {
       uRemplir: balayage.uRemplir,
@@ -61,10 +75,11 @@ function brancherBalayage(materiau, balayage, trous) {
     if (trous) shader.uniforms.uTrous = { value: trous };
 
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vMonde;')
+      .replace('#include <common>', `#include <common>\nvarying vec3 vMonde;\n${ao ? 'attribute float aoSommet;\nvarying float vAO;' : ''}`)
       .replace(
         '#include <project_vertex>',
         `#include <project_vertex>
+        ${ao ? 'vAO = aoSommet;' : ''}
         vec4 pMonde = vec4(transformed, 1.0);
         #ifdef USE_INSTANCING
           pMonde = instanceMatrix * pMonde;
@@ -73,7 +88,8 @@ function brancherBalayage(materiau, balayage, trous) {
       );
 
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${GLSL_BALAYAGE}\n${trous ? GLSL_TROUS : ''}`)
+      .replace('#include <common>', `#include <common>\n${GLSL_BALAYAGE}\n${trous ? GLSL_TROUS : ''}\n${ao ? 'varying float vAO;' : ''}`)
+      .replace('#include <aomap_fragment>', `#include <aomap_fragment>\n${ao ? GLSL_AO : ''}`)
       .replace(
         '#include <clipping_planes_fragment>',
         `#include <clipping_planes_fragment>
@@ -89,7 +105,7 @@ function brancherBalayage(materiau, balayage, trous) {
         #include <opaque_fragment>`,
       );
   };
-  materiau.customProgramCacheKey = () => `balayage-${trous ? 'trous' : 'plein'}`;
+  materiau.customProgramCacheKey = () => `balayage-${trous ? 'trous' : 'plein'}${ao ? '-ao' : ''}`;
   return materiau;
 }
 
@@ -104,8 +120,10 @@ const RECETTES = {
   facette: { color: srgb('#5a5c61'), metalness: 0.55, roughness: 0.42 },
   verreFume: { color: srgb('#060607'), metalness: 0, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.03 },
   plastiqueNoir: { color: srgb('#101114'), metalness: 0, roughness: 0.55, side: DoubleSide },
+  // pales STORMFORCE : plastique noir satiné, longs reflets doux (fan.png)
+  plastiquePales: { color: srgb('#0d0e10'), metalness: 0, roughness: 0.4, clearcoat: 0.18, clearcoatRoughness: 0.32 },
   moyeuArgent: { color: srgb('#cfd0d2'), metalness: 1, roughness: 0.42 },
-  moyeuSombre: { color: srgb('#8a8c92'), metalness: 1, roughness: 0.4 },
+  moyeuSombre: { color: srgb('#4a4c52'), metalness: 1, roughness: 0.3 },
   // pièces enfouies dans la coque : moins de reflets (occlusion approchée)
   alu: { color: srgb('#9a9ca0'), metalness: 1, roughness: 0.45, envMapIntensity: 0.45 },
   nickel: { color: srgb('#d5d2cc'), metalness: 1, roughness: 0.22, envMapIntensity: 0.8 },
@@ -144,10 +162,11 @@ export function chargerTextures(maxAnisotropie = 8) {
 // Fabrique les matériaux d'une pièce, tous reliés au même balayage.
 export function fabriqueMateriaux(balayage) {
   const cache = new Map();
-  return function materiau(nom, { trous } = {}) {
-    const cle = nom + (trous ? '+trous' : '');
+  return function materiau(nom, { trous, ao = false } = {}) {
+    const cle = nom + (trous ? '+trous' : '') + (ao ? '+ao' : '');
     if (cache.has(cle)) return cache.get(cle);
-    const recette = { ...RECETTES[nom] };
+    if (!RECETTES[nom]) console.warn(`matériau inconnu : ${nom}`);
+    const recette = { ...(RECETTES[nom] ?? RECETTES.plastiqueNoir) };
     const m = new MeshPhysicalMaterial(recette);
     if (nom === 'backplateBrosse' && texturesBrosse) {
       m.map = texturesBrosse.couleur;
@@ -156,7 +175,7 @@ export function fabriqueMateriaux(balayage) {
       m.normalScale.set(0.35, 0.35);
       m.anisotropyRotation = (31 * Math.PI) / 180;
     }
-    brancherBalayage(m, balayage, trous);
+    brancherBalayage(m, balayage, trous, ao);
     cache.set(cle, m);
     return m;
   };

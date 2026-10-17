@@ -191,12 +191,14 @@ const Finition = {
 };
 
 // Niveaux de qualité : on descend quand les images par seconde chutent.
+// msaa : échantillons d'antialiasing de la composition principale (les ailettes
+// et les bords de pales ne scintillent plus).
 const NIVEAUX = [
-  { dpr: 1.5, bloom: 0.5, ombres: 2048, poussiere: 1 },
-  { dpr: 1.25, bloom: 0.5, ombres: 2048, poussiere: 0.8 },
-  { dpr: 1, bloom: 0.4, ombres: 1024, poussiere: 0.6 },
-  { dpr: 0.85, bloom: 0.33, ombres: 1024, poussiere: 0.35 },
-  { dpr: 0.7, bloom: 0.25, ombres: 512, poussiere: 0.2 },
+  { dpr: 1.5, bloom: 0.5, ombres: 2048, poussiere: 1, msaa: 4 },
+  { dpr: 1.25, bloom: 0.5, ombres: 2048, poussiere: 0.8, msaa: 4 },
+  { dpr: 1, bloom: 0.4, ombres: 1024, poussiere: 0.6, msaa: 2 },
+  { dpr: 0.85, bloom: 0.33, ombres: 1024, poussiere: 0.35, msaa: 2 },
+  { dpr: 0.7, bloom: 0.25, ombres: 512, poussiere: 0.2, msaa: 0 },
 ];
 
 export function creerRendu(canvas) {
@@ -297,6 +299,13 @@ export function creerRendu(canvas) {
     const h = innerHeight;
     renderer.setPixelRatio(dpr());
     renderer.setSize(l, h, false);
+    const msaa = NIVEAUX[niveau].msaa;
+    for (const cible of [composer.renderTarget1, composer.renderTarget2]) {
+      if (cible.samples !== msaa) {
+        cible.samples = msaa;
+        cible.dispose(); // recréée au prochain rendu avec le bon nombre d'échantillons
+      }
+    }
     composer.setPixelRatio(dpr());
     composer.setSize(l, h);
     const k = NIVEAUX[niveau].bloom;

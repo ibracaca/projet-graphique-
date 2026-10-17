@@ -9,6 +9,7 @@ import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
 import { creerSon } from './audio/son.js';
 import { chargerTextures } from './carte/materiaux.js';
+import { chargerModeleCarte } from './carte/modele.js';
 import { creerCurseur } from './hud/curseur.js';
 import { creerHUD } from './hud/hud.js';
 import { construireActe1 } from './recit/acte1.js';
@@ -38,22 +39,24 @@ scrollTo(0, 0);
 // --- Chargements, suivis par l'écran de démarrage ---------------------------
 const rendu = creerRendu(document.getElementById('scene'));
 const son = creerSon();
-const octets = { hdr: [0, 6.3e6], musique: [0, 6.2e6] };
+const octets = { hdr: [0, 6.3e6], musique: [0, 6.2e6], modele: [0, 4e5] };
 let etapesFaites = 0;
 const compter = (p) => p.then((r) => (etapesFaites++, r));
 const progression = () => {
-  const recu = octets.hdr[0] + octets.musique[0];
-  const total = octets.hdr[1] + octets.musique[1];
-  return Math.min(1, 0.85 * (recu / total) + 0.15 * (etapesFaites / 5));
+  const parts = Object.values(octets);
+  const recu = parts.reduce((s, [r]) => s + r, 0);
+  const total = parts.reduce((s, [, t]) => s + t, 0);
+  return Math.min(1, 0.85 * (recu / total) + 0.15 * (etapesFaites / 6));
 };
 
 const textes = compter(chargerTextures(rendu.renderer.capabilities.getMaxAnisotropy()));
 const polices = compter(document.fonts.ready);
 const environnement = compter(chargerEnvironnement(rendu.renderer, { seuil: 2.5, plancher: 0.06 }, (r, t) => (octets.hdr = [r, t])));
 const musique = compter(son.charger((r, t) => (octets.musique = [r, t])));
+const modele = compter(chargerModeleCarte((r, t) => (octets.modele = [r, t])));
 
-// La carte a besoin de la texture d'alu brossé : on la construit après.
-const plateau = textes.then(() => creerPlateau(rendu));
+// La carte a besoin de la texture d'alu brossé et du modèle : on la construit après.
+const plateau = Promise.all([modele, textes]).then(([m]) => creerPlateau(rendu, m));
 const gpu = compter(
   plateau.then(async (p) => {
     rendu.recenserMateriaux();

@@ -16,6 +16,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { construireCarte } from '../carte/carte.js';
 import { chargerEnvironnement } from '../scene/environnement.js';
 import { chargerTextures } from '../carte/materiaux.js';
+import { chargerModeleCarte } from '../carte/modele.js';
 import { calerSurPhoto, poserCamera } from './calage.js';
 
 // Vues : orthographiques calées au pixel sur une photo, ou en perspective à l'œil.
@@ -87,6 +88,15 @@ const VUES = {
     photo: 'produit-5.webp',
     ortho: { dir: [1, 0, 0], haut: [0, 0, 1], point: [-179.5, 45, -25.8], pixel: [380.6, 539], mmParPx: 0.1743 },
   },
+  // Gros plan d'un ventilateur seul (le droit), à comparer à fan.png.
+  // Cadrage à l'œil : la photo montre le flanc de l'anneau en bas à droite.
+  ventilateur: {
+    nom: 'Ventilateur',
+    photo: 'fan.png',
+    libre: { pos: [115.5 + 120, 7 - 95, 23 + 190], cible: [115.5 + 6, 7 - 6, 23], fov: 30 },
+    isoler: 'ventilateurs',
+    seul: 'ventilateur_2',
+  },
   // Vue libre, sans photo : pour la vue éclatée et le balayage filaire / matière.
   libre: { nom: 'Libre', libre: { pos: [420, 260, 620], cible: [0, 0, 0], fov: 32 } },
 };
@@ -122,7 +132,7 @@ const controles = new OrbitControls(cameraPersp, renderer.domElement);
 controles.enableDamping = true;
 
 await chargerTextures(renderer.capabilities.getMaxAnisotropy());
-const carte = construireCarte();
+const carte = construireCarte(await chargerModeleCarte());
 scene.add(carte.racine);
 
 // Studio filtré « salle noire » ; ?seuil=, ?gain=, ?plancher=, ?env= pour régler.
@@ -191,7 +201,12 @@ function calerOrtho(o, { s, ox, oy }) {
 
 function appliquerVue() {
   const vue = VUES[etat.vue];
-  document.getElementById('volets').classList.toggle('libre', !!vue.libre);
+  document.getElementById('volets').classList.toggle('libre', !!vue.libre && !vue.photo);
+  // vues de détail : une seule pièce, voire un seul de ses éléments
+  for (const p of carte.pieces) {
+    p.groupe.visible = !vue.isoler || p.id === vue.isoler;
+    for (const enfant of p.groupe.children) enfant.visible = !vue.seul || p.id !== vue.isoler || enfant.name === vue.seul;
+  }
   const calage = placerPhoto();
   const { w, h } = rectVolet();
   renderer.setSize(w, h);

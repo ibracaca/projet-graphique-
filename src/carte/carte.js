@@ -3,6 +3,7 @@ import { construireBackplate, construireEquerre } from './arriere.js';
 import { construireCoque } from './coque.js';
 import { construireConnecteur, construireGPU, construireMemoire, construirePCB } from './electronique.js';
 import { creerBalayage, fabriqueMateriaux, materiauFilaire, materiauNeon } from './materiaux.js';
+import { adapterPiece } from './modele.js';
 import { construireCorePipes, construirePlaqueBase, construireRadiateur } from './refroidissement.js';
 import { construireVentilateurs } from './ventilateurs.js';
 
@@ -47,7 +48,9 @@ function ajouterFilaire(groupe, materiau) {
   }
 }
 
-export function construireCarte() {
+// modele : la scène du fichier carte.glb (ou null). Une pièce présente dans le
+// modèle vient de Blender, avec son filaire dédié ; sinon elle est construite par code.
+export function construireCarte(modele = null) {
   const racine = new Group();
   racine.name = 'carte';
   const coins = Array.from({ length: 8 }, () => new Vector3());
@@ -59,9 +62,15 @@ export function construireCarte() {
       m: fabriqueMateriaux(balayage),
       neon: (options) => materiauNeon(balayage, options),
     };
-    const groupe = def.construire(ctx);
+    const noeud = modele?.getObjectByName(def.id);
+    let groupe;
+    if (noeud) {
+      groupe = adapterPiece(noeud, { ...ctx, filaire: materiauFilaire(balayage) });
+    } else {
+      groupe = def.construire(ctx);
+      ajouterFilaire(groupe, materiauFilaire(balayage));
+    }
     groupe.name = def.id;
-    ajouterFilaire(groupe, materiauFilaire(balayage));
     groupe.updateMatrixWorld(true);
     const boite = new Box3().setFromObject(groupe);
     racine.add(groupe);
