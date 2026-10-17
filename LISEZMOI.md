@@ -19,7 +19,7 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | 3. Colonne vertébrale (scène, scroll, son), puis acte I | Validé |
 | 4. Acte II | Validé |
 | 5. Acte III | Validé |
-| 6. Acte IV | En validation |
+| 6. Acte IV | Validé |
 
 ## Ce que fait le site aujourd'hui
 
