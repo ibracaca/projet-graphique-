@@ -100,4 +100,4 @@ Et : Mode film (bouton `[ MODE FILM ]`), retour en arrière du bas jusqu'en haut
 - Modèles et scripts dans le dépôt, ressources listées dans `CREDITS.md`.
 - `DESIGN.md` section 7 et `LISEZMOI.md` mis à jour (où modifier les modèles, comment régénérer le `.glb` si route A).
 - Captures avant / après dans `captures/refonte/`, planches de comparaison avec les photos.
-- Aucun tiret cadratin : `grep -rn $'—' --exclude-dir=node_modules --exclude-dir=.git .` doit être vide (les binaires, images et audio, peuvent contenir l'octet par hasard : ne compter que les fichiers texte).
+- Aucun tiret cadratin : `grep -rn $'\u2014' --exclude-dir=node_modules --exclude-dir=.git .` doit être vide (les binaires, images et audio, peuvent contenir l'octet par hasard : ne compter que les fichiers texte).
