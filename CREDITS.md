@@ -50,6 +50,8 @@ Servent uniquement de modèle pour construire la carte en 3D. Images © MSI, té
 | `assets/hdri/studio_small_08_2k.hdr` | Poly Haven, « Studio Small 08 » : https://polyhaven.com/a/studio_small_08 (téléchargé via l'API publique, 2k) | CC0 |
 | `assets/textures/metal009/` (`color.jpg`, `roughness.jpg`, `normal.jpg`) | ambientCG, « Metal 009 » (métal brossé) : https://ambientcg.com/view?id=Metal009 (1K-JPG) | CC0 |
 
+| `assets/textures/asphalt025c/` (`color.jpg`, `roughness.jpg`, `normal.jpg`) | ambientCG, « Asphalt 025 C » (asphalte sombre mouillé) : https://ambientcg.com/view?id=Asphalt025C (1K-JPG) | CC0 |
+| `assets/textures/concrete036/` (`color.jpg`, `roughness.jpg`, `normal.jpg`) | ambientCG, « Concrete 036 » (enduit de béton sombre) : https://ambientcg.com/view?id=Concrete036 (1K-JPG) | CC0 |
 | `assets/models/carte.glb` | Modélisé pour ce projet par scripts Blender (`outils/blender/`) ; la texture du PCB est générée par le script (`electronique.py`), sans ressource extérieure | Création du projet |
 | `public/draco/` | Décodeur Draco fourni avec Three.js (`three/examples/jsm/libs/draco/gltf/`) | Apache 2.0 |
 

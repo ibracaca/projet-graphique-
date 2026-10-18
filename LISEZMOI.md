@@ -21,7 +21,7 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | 5. Acte III | Validé |
 | 6. Acte IV | Validé |
 | 7. Refonte 3D : carte modélisée dans Blender, rendu de film produit | En validation |
-| 8. Refonte 3D : la ville | À faire |
+| 8. Refonte 3D : la ville | En validation |
 
 ## Ce que fait le site aujourd'hui
 
@@ -62,7 +62,9 @@ Page `dev/carte.html` (ouvre `http://localhost:5173/dev/carte.html` quand le sit
 | Les noms des pièces de la vue éclatée | `src/carte/carte.js` (liste `PIECES`) |
 | La cue sheet : ordre des beats, durée de scroll, temps musical | `src/recit/cue.js` (liste `BEATS`) |
 | La chorégraphie des actes | `src/recit/acte1.js` à `acte4.js` (positions en vh de scroll) |
-| La ville, le dégradé sur les arêtes | `src/scene/ville.js`, `src/scene/aretes.js` |
+| La ville : formes des immeubles, enseignes, rue | `src/scene/ville-kit.js` (`genererVille`) |
+| La ville : matières, fenêtres, néons, pluie, reflets | `src/scene/ville.js` |
+| Le dégradé sur les arêtes | `src/scene/aretes.js` |
 | Le tableau de la fiche technique, le footer | `index.html` (sections `t-fiche` et `t-fin`) |
 | Les crédits affichés sur le site | `CREDITS.md` (le site le lit directement) |
 | Le microscope, les pistes mémoire, l'image de 4,17 ms | `src/scene/microscope.js`, `src/scene/memoire.js`, `src/scene/image.js` |

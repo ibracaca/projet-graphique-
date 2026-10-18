@@ -195,6 +195,9 @@ function creerCone() {
   return cone;
 }
 
+const FLOU_CARTE = [1.0, 0.65, 0.28, 0.08, 0.02];
+const FLOU_VILLE = [1.0, 0.45, 0.12, 0.02, 0.0];
+
 // intensité des boîtes à lumière pour E.atelier = 1 (réglée à l'œil sur les beats 11 et 13)
 const BOITES = 6;
 
@@ -320,7 +323,9 @@ export function creerPlateau(rendu, modele) {
     pu.uEchelle.value = rendu.renderer.getPixelRatio();
     poussiere.visible = E.poussiere > 0.001;
 
-    scene.environmentIntensity = E.env;
+    // dans la ville, le studio de la carte n'a rien à faire : ses reflets sont presque éteints
+    // (Three.js applique cette valeur à tous les matériaux qui n'ont pas leur propre envMap)
+    scene.environmentIntensity = E.ville > 0.5 ? 0.03 : E.env;
     // Occlusion ambiante : seulement quand toute la carte est en matière, hors
     // vision thermique, microscope et ville ; elle arrive et repart en fondu.
     const enMatiere = carte.pieces.every((p) => p.remplissage > 0.999) && E.ville < 0.5 && E.scan < 0.001 && E.micro < 0.01;
@@ -381,6 +386,9 @@ export function creerPlateau(rendu, modele) {
     u.uNoir.value = E.noir;
     u.uAberration.value = E.aberration;
     u.uBloom.value = E.bloom * (1 + son.basses * 0.3);
+    // dans la ville, les néons sont nombreux et grands : on coupe les niveaux de flou
+    // les plus larges, sinon leur lueur voile tout le ciel (qui doit rester noir)
+    rendu.bloom.compositeMaterial.uniforms.bloomFactors.value = E.ville > 0.5 ? FLOU_VILLE : FLOU_CARTE;
   }
 
   return { carte, appliquer, faisceau, poussiere, camera };

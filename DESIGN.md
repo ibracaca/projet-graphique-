@@ -284,6 +284,17 @@ Le filaire n'est plus calculé sur les maillages : chaque pièce fournit ses lig
 
 Les textes « GEFORCE RTX » et les logos de la vraie carte ne sont pas reproduits.
 
+### La ville du beat 12
+
+Refonte du 18/10/2026 (`docs/09-refonte-ville.md`). Une rue étroite (190 de large) bordée d'immeubles générés par règles (`src/scene/ville-kit.js`) : rez-de-chaussée en retrait avec vitrines, corniches, bandeaux d'étage, pilastres ou balcons à garde-corps, climatiseurs, descentes d'eau, escaliers de secours, réservoirs et caissons sur les toits, lampadaires, câbles en chaînettes, chaussée, trottoirs, marquages, plaques d'égout. Les îlots plus loin restent des volumes simples. Tout est fusionné en quelques géométries par matière (environ 60 appels de dessin).
+
+- **Fenêtres à intérieur** (`interior mapping`) : une pièce simulée derrière chaque vitre, avec parallaxe ; quelques-unes allumées en blanc cassé, stores baissés, vitrines plus claires.
+- **Matières** : béton et asphalte mouillé ambientCG (CC0). Les reflets d'environnement du studio sont coupés dans la ville.
+- **Néons** : tubes dans des cadres et des drapeaux métalliques, formes abstraites (cadres, barres, motif « /// »), dégradé MSI le long de chaque enseigne ; halos dans l'air humide ; dix lumières ponctuelles aux couleurs des enseignes. Le bloom de la ville coupe ses niveaux les plus larges pour garder le ciel noir.
+- **Atmosphère** : brouillard noir plus dense en bas, cônes de lumière sous les lampadaires, pluie en traînées de longueurs variées éclairée par les néons proches, éclaboussures au sol.
+- **Reflets** (étape 3) : `Reflector`, nets dans les flaques (lues dans la rugosité de l'asphalte) et étirés verticalement ailleurs, remous de gouttes au premier plan.
+- Les cinq passes par tuiles sont gardées : chaque matériau passe par `brancherEtapes()`.
+
 ---
 
 ## 8. Le son
