@@ -20,8 +20,9 @@ Le site ne marche pas en double-cliquant sur `index.html` : le navigateur bloque
 | 4. Acte II | Validé |
 | 5. Acte III | Validé |
 | 6. Acte IV | Validé |
-| 7. Refonte 3D : carte modélisée dans Blender, rendu de film produit | En validation |
-| 8. Refonte 3D : la ville | En validation |
+| 7. Refonte 3D : carte modélisée dans Blender, rendu de film produit | Validée |
+| 8. Refonte 3D : la ville | Validée |
+| 9. Non-régression de tout le site (`node outils/non-regression.mjs`) | En validation |
 
 ## Ce que fait le site aujourd'hui
 
